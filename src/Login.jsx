@@ -1,7 +1,11 @@
-import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router'; // ✅ make sure you're using 'react-router-dom'
-import { auth } from './firebaseConfig';
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth';
+import { useEffect, useState } from 'react';
+ import { auth } from './firebaseConfig';
+import { Link,useNavigate } from 'react-router';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,8 +14,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // ✅ Redirect to dashboard if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,34 +30,34 @@ export default function Login() {
 
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email.");
-      setLoading(false);
       return;
     }
 
     setLoading(true);
 
     try {
-      // ✅ Persist the login session in localStorage
       await setPersistence(auth, browserLocalPersistence);
 
-      const trimmedEmail = email.trim();
-      const trimmedPassword = password.trim();
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password.trim()
+      );
 
-      const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
       const user = userCredential.user;
-
       const token = await user.getIdToken();
-      localStorage.setItem("token", token);
-      localStorage.setItem("email", user.email);
 
-      navigate("/dashboard");
+      localStorage.setItem('token', token);
+      localStorage.setItem('email', user.email);
+
+      navigate('/dashboard');
     } catch (err) {
-      if (err.code === "auth/user-not-found") {
-        setError("User not found. Please register first.");
-      } else if (err.code === "auth/wrong-password") {
-        setError("Incorrect password. Please try again.");
+      if (err.code === 'auth/user-not-found') {
+        setError('User not found. Please register first.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.');
       } else {
-        setError("Login failed. Please try again.");
+        setError('Login failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -55,12 +66,15 @@ export default function Login() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen items-center justify-center bg-gradient-to-br from-purple-700 via-pink-600 to-red-500 animate-gradient-x px-4">
-
       {/* 3D Animation */}
       <div className="flex items-center justify-center w-full md:w-[40%] mb-6 md:mb-0 md:mr-[-20px]">
         <div className="relative w-36 h-36 sm:w-52 sm:h-52 [perspective:1000px]">
           <div className="absolute inset-0 bg-white/20 backdrop-blur-md rounded-2xl border border-white/40 shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center animate-spin3d transform-style-preserve-3d text-4xl sm:text-6xl font-bold text-white">
-            <img src="kits_logo.jpg" className="w-28 h-28 sm:w-42 sm:h-42 rounded-2xl object-cover" alt="logo" />
+            <img
+              src="kits_logo.jpg"
+              className="w-28 h-28 sm:w-42 sm:h-42 rounded-2xl object-cover"
+              alt="logo"
+            />
           </div>
         </div>
       </div>
