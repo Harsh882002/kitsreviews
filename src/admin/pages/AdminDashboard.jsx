@@ -71,7 +71,7 @@ const AdminDashboard = () => {
       // Optional: redirect or show logged out state here
       alert('Logged out successfully!');
       // You might want to redirect user to login page after logout
-      // window.location.href = '/login'; 
+      window.location.href = '/'; 
     } catch (error) {
       console.error('Logout error:', error);
     }
