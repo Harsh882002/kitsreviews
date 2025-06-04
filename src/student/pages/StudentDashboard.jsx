@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { db } from '../../firebaseConfig';
 import { getAuth, signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router';
 
 function StarRating({ rating, onRate }) {
   return (
@@ -45,6 +46,7 @@ export default function StudentDashboard({ studentId }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const navigate = useNavigate();
   const [openReview, setOpenReview] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState('');
   const [ratings, setRatings] = useState({});
@@ -140,7 +142,7 @@ const handleLogout = async () => {
     await signOut(auth);
     localStorage.clear(); // Optional: clear saved role
     toast.success("LogOut Successfull..")
-    window.location.href = "/"; // or use navigate("/") if using react-router
+    navigate("/") // or use navigate("/") if using react-router
   } catch (error) {
     console.error("Logout Error:", error);
     toast.error("Failed to logout.");

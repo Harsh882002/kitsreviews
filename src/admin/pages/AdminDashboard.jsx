@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TeacherForm from './AddTeacher';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { getAuth, signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router';
 
 const AdminDashboard = () => {
   const [students, setStudents] = useState([]);
@@ -12,6 +13,7 @@ const AdminDashboard = () => {
   const [showStudents, setShowStudents] = useState(false);
   const [showTeachers, setShowTeachers] = useState(false);
 
+  const navigate  = useNavigate();
   // Fetch students reviews
   const fetchStudentReviews = async () => {
     setLoadingStudents(true);
@@ -64,18 +66,19 @@ const AdminDashboard = () => {
   };
 
   // Logout handler
-  const handleLogout = async () => {
+    
+const handleLogout = async () => {
+  try {
     const auth = getAuth();
-    try {
-      await signOut(auth);
-      // Optional: redirect or show logged out state here
-      alert('Logged out successfully!');
-      // You might want to redirect user to login page after logout
-      window.location.href = '/'; 
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+    await signOut(auth);
+    localStorage.clear(); // Optional: clear saved role
+    toast.success("LogOut Successfull..")
+    navigate("/") // or use navigate("/") if using react-router
+  } catch (error) {
+    console.error("Logout Error:", error);
+    toast.error("Failed to logout.");
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-10 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white relative overflow-hidden">
