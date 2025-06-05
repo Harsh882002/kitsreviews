@@ -100,40 +100,43 @@ export default function StudentDashboard({ studentId }) {
   }, [studentId]);
 
   const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    const rating = ratings[selectedTopic] || 0;
-    if (rating === 0 || feedbackText.trim() === '') {
-      toast.error('Please provide rating and feedback.');
-      return;
-    }
+  e.preventDefault();
+  const rating = ratings[selectedTopic] || 0;
+  if (rating === 0 || feedbackText.trim() === '') {
+    toast.error('Please provide rating and feedback.');
+    return;
+  }
 
-    try {
-      const newReview = {
-        teacherId: student.teacherId,
-        topic: selectedTopic,
-        studentName: student.name,
-        message: feedbackText,
-        rating: rating,
-        date: new Date(),
-      };
+  try {
+    const originalReview = reviews.find(r => r.topic === selectedTopic);
 
-      await addDoc(collection(db, 'studentreviews'), newReview);
+    const newReview = {
+      teacherId: student.teacherId,
+      topic: selectedTopic,
+      studentName: student.name,
+      message: feedbackText,
+      rating: rating,
+      date: originalReview?.date || new Date(), // <-- important change here
+    };
 
-      toast.success('Feedback submitted!');
-      setSubmitted(true);
-      setOpenReview(false);
-      setFeedbackText('');
-      setRatings(prev => {
-        const updated = { ...prev };
-        delete updated[selectedTopic];
-        return updated;
-      });
-      setSelectedTopic('');
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to submit feedback.');
-    }
-  };
+    await addDoc(collection(db, 'studentreviews'), newReview);
+
+    toast.success('Feedback submitted!');
+    setSubmitted(true);
+    setOpenReview(false);
+    setFeedbackText('');
+    setRatings(prev => {
+      const updated = { ...prev };
+      delete updated[selectedTopic];
+      return updated;
+    });
+    setSelectedTopic('');
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to submit feedback.');
+  }
+};
+
 
  
 const handleLogout = async () => {
