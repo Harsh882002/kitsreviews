@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, getDoc, addDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { getAuth, signOut } from 'firebase/auth';
 import { toast, ToastContainer } from 'react-toastify';
@@ -12,44 +12,45 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [teacher, setTeacher] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const auth = getAuth();
-      const user = auth.currentUser;
+  const fetchData = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-      if (user) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            if (userData.role === 'teacher') {
-              setTeacher({ ...userData, uid: user.uid });
-            } else {
-              console.warn('Logged in user is not a teacher.');
-            }
+    if (user) {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.role === 'teacher') {
+            setTeacher({ ...userData, uid: user.uid });
           } else {
-            console.warn('No user document found.');
+            console.warn('Logged in user is not a teacher.');
           }
-
-          const reviewsQuery = query(
-            collection(db, 'studentreviews'),
-            where('teacherId', '==', user.uid)
-          );
-          const reviewSnap = await getDocs(reviewsQuery);
-          const reviews = reviewSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setStudents(reviews);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        } finally {
-          setLoading(false);
+        } else {
+          console.warn('No user document found.');
         }
-      }
-    };
 
+        const reviewsQuery = query(
+          collection(db, 'studentreviews'),
+          where('teacherId', '==', user.uid)
+        );
+        const reviewSnap = await getDocs(reviewsQuery);
+        const reviews = reviewSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setStudents(reviews);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
-   const formatDate = (timestamp) => {
+
+  const formatDate = (timestamp) => {
     if (!timestamp?.seconds) return 'Invalid date';
     const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6);
     return date.toLocaleString(); // Change toLocaleString() to other format if needed
@@ -101,6 +102,20 @@ const TeacherDashboard = () => {
     }
   };
 
+
+  //Delete a Review
+  // Delete a Review
+const handleDelete = async (id) => {
+  try {
+    await deleteDoc(doc(db, "studentreviews", id));
+    toast.success("Review deleted");
+    fetchData(); // Now this will work
+  } catch (err) {
+    console.error("Delete error:", err);
+    toast.error("Failed to delete review");
+  }
+};
+
   return (
     <div className="min-h-screen px-4 py-8 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white relative">
 
@@ -108,15 +123,15 @@ const TeacherDashboard = () => {
       <div className="absolute top-1/2 left-1/2 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-gradient-to-tr from-yellow-400 via-red-500 to-pink-600 rounded-full opacity-20 blur-3xl -translate-x-1/2 -translate-y-1/2 animate-spin-slow"></div>
 
       {/* Logout button top-right */}
-     <div className="absolute top-4 right-4 z-50
+      <div className="absolute top-4 right-4 z-50
                 sm:static sm:mb-4 sm:flex sm:justify-end">
-  <button
-    onClick={handleLogout}
-    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold shadow"
-  >
-    🔒 Logout
-  </button>
-</div>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold shadow"
+        >
+          🔒 Logout
+        </button>
+      </div>
 
 
       {/* Main container */}
@@ -192,23 +207,34 @@ const TeacherDashboard = () => {
                 <table className="w-full text-white border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-white/10">
-                     <th className="p-2 border border-white/20 text-left">Date</th>
+                      <th className="p-2 border border-white/20 text-left">Date</th>
                       <th className="p-2 border border-white/20 text-left">Topic</th>
                       <th className="p-2 border border-white/20 text-left">Student Name</th>
                       <th className="p-2 border border-white/20 text-left">Review</th>
                       <th className="p-2 border border-white/20 text-center">Stars</th>
+                      <th className="p-2 border border-white/20 text-center">Delete</th>
+
                     </tr>
                   </thead>
                   <tbody>
                     {students.map((s) => (
                       <tr key={s.id} className="hover:bg-white/10 transition">
-                         <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
-                        {formatDate(s.date)}
-                      </td>
+                        <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
+                          {formatDate(s.date)}
+                        </td>
                         <td className="p-2 border border-white/20">{s.topic}</td>
                         <td className="p-2 border border-white/20">{s.studentName}</td>
                         <td className="p-2 border border-white/20">{s.message}</td>
                         <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">{renderStars(s.rating)}</td>
+<td className="text-center">
+  <button
+    onClick={() => handleDelete(s.id)}
+    className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded-md shadow transition duration-300 ease-in-out"
+  >
+    🗑️ Delete
+  </button>
+</td>
+
                       </tr>
                     ))}
                   </tbody>
