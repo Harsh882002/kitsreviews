@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, getDoc, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
+import Swal from 'sweetalert2';
 import { getAuth, signOut } from 'firebase/auth';
 import { toast, ToastContainer } from 'react-toastify';
 
@@ -35,7 +36,14 @@ const TeacherDashboard = () => {
           where('teacherId', '==', user.uid)
         );
         const reviewSnap = await getDocs(reviewsQuery);
-        const reviews = reviewSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const reviews = reviewSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => {
+            const dateA = a.date?.seconds || 0;
+            const dateB = b.date?.seconds || 0;
+            return dateB - dateA; // Sort by date descending
+          });
+
         setStudents(reviews);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -49,13 +57,11 @@ const TeacherDashboard = () => {
     fetchData();
   }, []);
 
-
   const formatDate = (timestamp) => {
     if (!timestamp?.seconds) return 'Invalid date';
     const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6);
-    return date.toLocaleString(); // Change toLocaleString() to other format if needed
+    return date.toLocaleDateString();
   };
-
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -102,29 +108,35 @@ const TeacherDashboard = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Review?',
+      text: 'Are you sure you want to delete this review?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e3342f',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, delete it!',
+    });
 
-  //Delete a Review
-  // Delete a Review
-const handleDelete = async (id) => {
-  try {
-    await deleteDoc(doc(db, "studentreviews", id));
-    toast.success("Review deleted");
-    fetchData(); // Now this will work
-  } catch (err) {
-    console.error("Delete error:", err);
-    toast.error("Failed to delete review");
-  }
-};
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, "studentreviews", id));
+        toast.success("Review deleted");
+        fetchData();
+      } catch (err) {
+        console.error("Delete error:", err);
+        toast.error("Failed to delete review");
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen px-4 py-8 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white relative">
 
-      {/* Background spinning circle - smaller and responsive */}
       <div className="absolute top-1/2 left-1/2 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-gradient-to-tr from-yellow-400 via-red-500 to-pink-600 rounded-full opacity-20 blur-3xl -translate-x-1/2 -translate-y-1/2 animate-spin-slow"></div>
 
-      {/* Logout button top-right */}
-      <div className="absolute top-4 right-4 z-50
-                sm:static sm:mb-4 sm:flex sm:justify-end">
+      <div className="absolute top-4 right-4 z-50 sm:static sm:mb-4 sm:flex sm:justify-end">
         <button
           onClick={handleLogout}
           className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold shadow"
@@ -133,8 +145,6 @@ const handleDelete = async (id) => {
         </button>
       </div>
 
-
-      {/* Main container */}
       <div className="max-w-full sm:max-w-3xl md:max-w-4xl mx-auto bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/30">
 
         {loading ? (
@@ -151,7 +161,6 @@ const handleDelete = async (id) => {
               Subject: {teacher?.subject || 'N/A'} | Email: {teacher?.email || 'N/A'}
             </p>
 
-            {/* Add Review Button */}
             <div className="flex justify-center mb-4">
               <button
                 onClick={() => setShowForm(!showForm)}
@@ -161,10 +170,8 @@ const handleDelete = async (id) => {
               </button>
             </div>
 
-            {/* Add Review Form */}
             {showForm && (
               <form onSubmit={handleAddReview} className="space-y-4 bg-white/10 p-4 rounded-xl border border-white/20">
-
                 <div>
                   <label className="block mb-1 font-semibold text-yellow-200">Topic</label>
                   <input
@@ -176,7 +183,6 @@ const handleDelete = async (id) => {
                     required
                   />
                 </div>
-
                 <div>
                   <label className="block mb-1 font-semibold text-yellow-200">Date</label>
                   <input
@@ -187,7 +193,6 @@ const handleDelete = async (id) => {
                     required
                   />
                 </div>
-
                 <button
                   type="submit"
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
@@ -202,7 +207,6 @@ const handleDelete = async (id) => {
             {students.length === 0 ? (
               <p className="text-center text-lg text-gray-200 py-4">No reviews yet 📭</p>
             ) : (
-              // Responsive table container with horizontal scroll on small devices
               <div className="overflow-x-auto">
                 <table className="w-full text-white border-collapse min-w-[600px]">
                   <thead>
@@ -213,7 +217,6 @@ const handleDelete = async (id) => {
                       <th className="p-2 border border-white/20 text-left">Review</th>
                       <th className="p-2 border border-white/20 text-center">Stars</th>
                       <th className="p-2 border border-white/20 text-center">Delete</th>
-
                     </tr>
                   </thead>
                   <tbody>
@@ -223,18 +226,17 @@ const handleDelete = async (id) => {
                           {formatDate(s.date)}
                         </td>
                         <td className="p-2 border border-white/20">{s.topic}</td>
-                        <td className="p-2 border border-white/20">{s.studentName}</td>
+                        <td className="p-2 border border-white/20">{s.studentName} {s.surname}</td>
                         <td className="p-2 border border-white/20">{s.message}</td>
                         <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">{renderStars(s.rating)}</td>
-<td className="text-center">
-  <button
-    onClick={() => handleDelete(s.id)}
-    className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded-md shadow transition duration-300 ease-in-out"
-  >
-    🗑️ Delete
-  </button>
-</td>
-
+                        <td className="text-center">
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded-md shadow transition duration-300 ease-in-out"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

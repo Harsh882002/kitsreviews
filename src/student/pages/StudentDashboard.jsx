@@ -66,6 +66,8 @@ export default function StudentDashboard({ studentId }) {
           return;
         }
         const studentData = studentDoc.data();
+                  console.log(studentData)
+
         setStudent(studentData);
 
         if (studentData.teacherId) {
@@ -114,11 +116,13 @@ export default function StudentDashboard({ studentId }) {
       teacherId: student.teacherId,
       topic: selectedTopic,
       studentName: student.name,
+      surname:student.surname,
       message: feedbackText,
       rating: rating,
       date: originalReview?.date || new Date(), // <-- important change here
     };
 
+    console.log("newReview",newReview)
     await addDoc(collection(db, 'studentreviews'), newReview);
 
     toast.success('Feedback submitted!');

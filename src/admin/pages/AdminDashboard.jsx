@@ -15,26 +15,34 @@ const AdminDashboard = () => {
 
   const navigate = useNavigate();
   // Fetch students reviews
-  const fetchStudentReviews = async () => {
-    setLoadingStudents(true);
-    try {
-      const db = getFirestore();
-      const reviewsQuery = query(collection(db, 'studentreviews'));
-      const reviewSnap = await getDocs(reviewsQuery);
-      const reviews = reviewSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log(reviews)
-      setStudents(reviews);
-    } catch (error) {
-      console.error('Error fetching student reviews:', error);
-    } finally {
-      setLoadingStudents(false);
-    }
-  };
+ const fetchStudentReviews = async () => {
+  setLoadingStudents(true);
+  try {
+    const db = getFirestore();
+    const reviewsQuery = query(collection(db, 'studentreviews'));
+    const reviewSnap = await getDocs(reviewsQuery);
+    const reviews = reviewSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Sort reviews by date (newest first)
+    const sortedReviews = reviews.sort((a, b) => {
+      const dateA = a.date?.seconds || 0;
+      const dateB = b.date?.seconds || 0;
+      return dateB - dateA;
+    });
+
+    setStudents(sortedReviews);
+  } catch (error) {
+    console.error('Error fetching student reviews:', error);
+  } finally {
+    setLoadingStudents(false);
+  }
+};
+
 
   const formatDate = (timestamp) => {
     if (!timestamp?.seconds) return 'Invalid date';
     const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6);
-    return date.toLocaleString(); // Change toLocaleString() to other format if needed
+    return date.toLocaleDateString(); // Change toLocaleString() to other format if needed
   };
 
 
