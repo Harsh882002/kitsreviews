@@ -4,13 +4,14 @@ import {
   browserLocalPersistence,
 } from 'firebase/auth';
 import { useEffect, useState } from 'react';
- import { auth } from './firebaseConfig';
-import { Link,useNavigate } from 'react-router';
+import { auth } from './firebaseConfig';
+import { Link, useNavigate } from 'react-router';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -26,10 +27,9 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email.");
+      toast.error('Please enter a valid email.');
       return;
     }
 
@@ -50,14 +50,15 @@ export default function Login() {
       localStorage.setItem('token', token);
       localStorage.setItem('email', user.email);
 
+      toast.success('Login successful!');
       navigate('/dashboard');
     } catch (err) {
       if (err.code === 'auth/user-not-found') {
-        setError('User not found. Please register first.');
+        toast.error('User not found. Please register first.');
       } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password. Please try again.');
+        toast.error('Incorrect password. Please try again.');
       } else {
-        setError('Login failed. Please try again.');
+        toast.error('Incorrect email or password. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -84,7 +85,7 @@ export default function Login() {
         <div className="backdrop-blur-lg bg-white/80 p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md border border-white/30 text-black relative">
           <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-white/20 to-transparent blur-xl opacity-20 pointer-events-none z-0"></div>
           <h2 className="text-4xl font-extrabold text-center drop-shadow-lg z-10 relative">
-            🎓 Student Login
+            🎓 User Login
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5 mt-6 z-10 relative">
@@ -111,8 +112,6 @@ export default function Login() {
               />
             </div>
 
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-
             <button
               type="submit"
               disabled={loading}
@@ -132,6 +131,9 @@ export default function Login() {
           </p>
         </div>
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar  />
 
       {/* Custom CSS */}
       <style jsx>{`

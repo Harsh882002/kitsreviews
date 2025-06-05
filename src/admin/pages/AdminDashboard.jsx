@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   const [showStudents, setShowStudents] = useState(false);
   const [showTeachers, setShowTeachers] = useState(false);
 
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   // Fetch students reviews
   const fetchStudentReviews = async () => {
     setLoadingStudents(true);
@@ -22,6 +22,7 @@ const AdminDashboard = () => {
       const reviewsQuery = query(collection(db, 'studentreviews'));
       const reviewSnap = await getDocs(reviewsQuery);
       const reviews = reviewSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log(reviews)
       setStudents(reviews);
     } catch (error) {
       console.error('Error fetching student reviews:', error);
@@ -29,6 +30,13 @@ const AdminDashboard = () => {
       setLoadingStudents(false);
     }
   };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp?.seconds) return 'Invalid date';
+    const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6);
+    return date.toLocaleString(); // Change toLocaleString() to other format if needed
+  };
+
 
   // Fetch teachers
   const fetchTeachers = async () => {
@@ -66,19 +74,19 @@ const AdminDashboard = () => {
   };
 
   // Logout handler
-    
-const handleLogout = async () => {
-  try {
-    const auth = getAuth();
-    await signOut(auth);
-    localStorage.clear(); // Optional: clear saved role
-    toast.success("LogOut Successfull..")
-    navigate("/") // or use navigate("/") if using react-router
-  } catch (error) {
-    console.error("Logout Error:", error);
-    toast.error("Failed to logout.");
-  }
-};
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      localStorage.clear(); // Optional: clear saved role
+      toast.success("LogOut Successfull..")
+      navigate("/") // or use navigate("/") if using react-router
+    } catch (error) {
+      console.error("Logout Error:", error);
+      toast.error("Failed to logout.");
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-10 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white relative overflow-hidden">
@@ -102,18 +110,16 @@ const handleLogout = async () => {
 
           <button
             onClick={handleShowStudents}
-            className={`font-bold px-4 py-2 rounded-xl transition flex-shrink-0 ${
-              showStudents ? 'bg-blue-600 text-white' : 'bg-blue-400 text-white hover:bg-blue-500'
-            }`}
+            className={`font-bold px-4 py-2 rounded-xl transition flex-shrink-0 ${showStudents ? 'bg-blue-600 text-white' : 'bg-blue-400 text-white hover:bg-blue-500'
+              }`}
           >
             👁️ See Students
           </button>
 
           <button
             onClick={handleShowTeachers}
-            className={`font-bold px-4 py-2 rounded-xl transition flex-shrink-0 ${
-              showTeachers ? 'bg-green-600 text-white' : 'bg-green-400 text-white hover:bg-green-500'
-            }`}
+            className={`font-bold px-4 py-2 rounded-xl transition flex-shrink-0 ${showTeachers ? 'bg-green-600 text-white' : 'bg-green-400 text-white hover:bg-green-500'
+              }`}
           >
             👁️ See Teachers
           </button>
@@ -139,6 +145,7 @@ const handleLogout = async () => {
               <table className="w-full table-auto border-collapse rounded-lg shadow text-sm sm:text-base">
                 <thead className="bg-white/10 text-yellow-300">
                   <tr>
+                    <th className="p-2 sm:p-3 border border-white/20">Date</th>
                     <th className="p-2 sm:p-3 border border-white/20">Topic</th>
                     <th className="p-2 sm:p-3 border border-white/20">Student Name</th>
                     <th className="p-2 sm:p-3 border border-white/20">Message</th>
@@ -148,7 +155,10 @@ const handleLogout = async () => {
                 <tbody>
                   {students.map((s) => (
                     <tr key={s.id} className="hover:bg-white/10 transition text-center">
-                      <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">{s.topic}</td>
+                      <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
+                        {formatDate(s.date)}
+                      </td>
+                       <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">{s.topic}</td>
                       <td className="p-2 sm:p-3 border border-white/20">{s.studentName}</td>
                       <td className="p-2 sm:p-3 border border-white/20 break-words max-w-sm">{s.message}</td>
                       <td className="p-2 sm:p-3 border border-white/20 text-yellow-400 text-lg">{renderStars(s.rating)}</td>

@@ -49,6 +49,13 @@ const TeacherDashboard = () => {
     fetchData();
   }, []);
 
+   const formatDate = (timestamp) => {
+    if (!timestamp?.seconds) return 'Invalid date';
+    const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6);
+    return date.toLocaleString(); // Change toLocaleString() to other format if needed
+  };
+
+
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
       <span key={i} className={i < rating ? 'text-yellow-400' : 'text-gray-400'}>★</span>
@@ -185,6 +192,7 @@ const TeacherDashboard = () => {
                 <table className="w-full text-white border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-white/10">
+                     <th className="p-2 border border-white/20 text-left">Date</th>
                       <th className="p-2 border border-white/20 text-left">Topic</th>
                       <th className="p-2 border border-white/20 text-left">Student Name</th>
                       <th className="p-2 border border-white/20 text-left">Review</th>
@@ -194,6 +202,9 @@ const TeacherDashboard = () => {
                   <tbody>
                     {students.map((s) => (
                       <tr key={s.id} className="hover:bg-white/10 transition">
+                         <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
+                        {formatDate(s.date)}
+                      </td>
                         <td className="p-2 border border-white/20">{s.topic}</td>
                         <td className="p-2 border border-white/20">{s.studentName}</td>
                         <td className="p-2 border border-white/20">{s.message}</td>

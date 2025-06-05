@@ -87,7 +87,7 @@ const TeacherForm = () => {
         joiningDate: '',
       });
 
-      navigate("/admin");
+      navigate("/dashboard");
     } catch (error) {
       setErrorMsg(error.message);
     }
