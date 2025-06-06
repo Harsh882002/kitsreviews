@@ -4,6 +4,8 @@ import { db } from '../../firebaseConfig';
 import Swal from 'sweetalert2';
 import { getAuth, signOut } from 'firebase/auth';
 import { toast, ToastContainer } from 'react-toastify';
+import { useNavigate } from 'react-router';
+
 
 const TeacherDashboard = () => {
   const [showForm, setShowForm] = useState(false);
@@ -12,6 +14,7 @@ const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [teacher, setTeacher] = useState(null);
+const navigate = useNavigate();
 
   const fetchData = async () => {
     const auth = getAuth();
@@ -216,30 +219,41 @@ const TeacherDashboard = () => {
                       <th className="p-2 border border-white/20 text-left">Student Name</th>
                       <th className="p-2 border border-white/20 text-left">Review</th>
                       <th className="p-2 border border-white/20 text-center">Stars</th>
-                      <th className="p-2 border border-white/20 text-center">Delete</th>
-                    </tr>
+                      <th className="p-2 border border-white/20 text-center">Actions</th>
+                     </tr>
                   </thead>
                   <tbody>
-                    {students.map((s) => (
-                      <tr key={s.id} className="hover:bg-white/10 transition">
-                        <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
-                          {formatDate(s.date)}
-                        </td>
-                        <td className="p-2 border border-white/20">{s.topic}</td>
-                        <td className="p-2 border border-white/20">{s.studentName} {s.surname}</td>
-                        <td className="p-2 border border-white/20">{s.message}</td>
-                        <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">{renderStars(s.rating)}</td>
-                        <td className="text-center">
-                          <button
-                            onClick={() => handleDelete(s.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded-md shadow transition duration-300 ease-in-out"
-                          >
-                            🗑️ Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+  {students.map((s) => (
+    <tr key={s.id} className="hover:bg-white/10 transition">
+      <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
+        {formatDate(s.date)}
+      </td>
+      <td className="p-2 border border-white/20">{s.topic}</td>
+      <td className="p-2 border border-white/20">{s.studentName} {s.surname}</td>
+      <td className="p-2 border border-white/20">{s.message}</td>
+      <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">
+        {renderStars(s.rating)}
+      </td>
+      <td className="p-2 border border-white/20 text-center">
+        <div className="flex flex-col sm:flex-row sm:justify-center gap-2">
+          <button
+            onClick={() => navigate(`/editreview/${s.id}`)}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded shadow text-sm sm:text-base"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            onClick={() => handleDelete(s.id)}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1 rounded shadow text-sm sm:text-base"
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
                 </table>
               </div>
             )}

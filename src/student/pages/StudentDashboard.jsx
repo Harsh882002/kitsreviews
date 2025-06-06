@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { db } from '../../firebaseConfig';
 import { getAuth, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router';
+import Swal from 'sweetalert2';
 
 function StarRating({ rating, onRate }) {
   return (
@@ -66,7 +67,7 @@ export default function StudentDashboard({ studentId }) {
           return;
         }
         const studentData = studentDoc.data();
-                  console.log(studentData)
+        console.log(studentData)
 
         setStudent(studentData);
 
@@ -102,59 +103,72 @@ export default function StudentDashboard({ studentId }) {
   }, [studentId]);
 
   const handleSubmitReview = async (e) => {
-  e.preventDefault();
-  const rating = ratings[selectedTopic] || 0;
-  if (rating === 0 || feedbackText.trim() === '') {
-    toast.error('Please provide rating and feedback.');
-    return;
-  }
+    e.preventDefault();
+    const rating = ratings[selectedTopic] || 0;
+    if (rating === 0 || feedbackText.trim() === '') {
+      toast.error('Please provide rating and feedback.');
+      return;
+    }
 
-  try {
-    const originalReview = reviews.find(r => r.topic === selectedTopic);
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to submit this review?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Submit it!',
+      cancelButtonText: 'Cancel',
+    })
 
-    const newReview = {
-      teacherId: student.teacherId,
-      topic: selectedTopic,
-      studentName: student.name,
-      surname:student.surname,
-      message: feedbackText,
-      rating: rating,
-      date: originalReview?.date || new Date(), // <-- important change here
-    };
+    if (!result.isConfirmed) {
+      return;    //user cancelled
+    }
 
-    console.log("newReview",newReview)
-    await addDoc(collection(db, 'studentreviews'), newReview);
+    try {
+      const originalReview = reviews.find(r => r.topic === selectedTopic);
 
-    toast.success('Feedback submitted!');
-    setSubmitted(true);
-    setOpenReview(false);
-    setFeedbackText('');
-    setRatings(prev => {
-      const updated = { ...prev };
-      delete updated[selectedTopic];
-      return updated;
-    });
-    setSelectedTopic('');
-  } catch (error) {
-    console.error(error);
-    toast.error('Failed to submit feedback.');
-  }
-};
+      const newReview = {
+        teacherId: student.teacherId,
+        topic: selectedTopic,
+        studentName: student.name,
+        surname: student.surname,
+        message: feedbackText,
+        rating: rating,
+        date: originalReview?.date || new Date(), // <-- important change here
+      };
+
+      console.log("newReview", newReview)
+      await addDoc(collection(db, 'studentreviews'), newReview);
+
+      toast.success('Feedback submitted!');
+      setSubmitted(true);
+      setOpenReview(false);
+      setFeedbackText('');
+      setRatings(prev => {
+        const updated = { ...prev };
+        delete updated[selectedTopic];
+        return updated;
+      });
+      setSelectedTopic('');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to submit feedback.');
+    }
+  };
 
 
- 
-const handleLogout = async () => {
-  try {
-    const auth = getAuth();
-    await signOut(auth);
-    localStorage.clear(); // Optional: clear saved role
-    toast.success("LogOut Successfull..")
-    navigate("/") // or use navigate("/") if using react-router
-  } catch (error) {
-    console.error("Logout Error:", error);
-    toast.error("Failed to logout.");
-  }
-};
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      localStorage.clear(); // Optional: clear saved role
+      toast.success("LogOut Successfull..")
+      navigate("/") // or use navigate("/") if using react-router
+    } catch (error) {
+      console.error("Logout Error:", error);
+      toast.error("Failed to logout.");
+    }
+  };
 
 
   if (loading) {
@@ -209,7 +223,7 @@ const handleLogout = async () => {
             <p className="text-white text-sm font-semibold mb-1">Topic: <span className="text-yellow-300">{topic}</span></p>
             <p className="text-white text-xs mb-2">{date.toLocaleDateString()}</p>
 
-            {openReview && selectedTopic === topic && (
+            {selectedTopic === topic && openReview &&(
               <form onSubmit={handleSubmitReview} className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md">
                 <h3 className="text-yellow-300 font-bold text-base">Submit Feedback for: <span className="text-white">{selectedTopic}</span></h3>
                 <div className="flex items-center space-x-3">
@@ -235,15 +249,28 @@ const handleLogout = async () => {
                   <button type="submit" className="flex-1 bg-yellow-400 text-indigo-900 font-bold py-2 rounded-xl hover:bg-yellow-500 transition">
                     Submit
                   </button>
-                  <button type="button" onClick={() => setOpenReview(false)} className="flex-1 bg-gray-600 text-white py-2 rounded-xl hover:bg-gray-700 transition">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenReview(false);
+                      setSelectedTopic('');
+                       setFeedbackText('');
+                      setRatings((prev) => {
+                        const updated = { ...prev };
+                        delete updated[selectedTopic];
+                        return updated;
+                      });
+                    }}
+                    className="flex-1 bg-gray-600 text-white py-2 rounded-xl hover:bg-gray-700 transition">
                     Cancel
                   </button>
                 </div>
               </form>
             )}
           </div>
-        ))}
-      </section>
+        ))
+        }
+      </section >
 
       {submitted && (
         <p className="max-w-md w-full text-green-400 font-semibold text-center mt-4">
@@ -259,6 +286,6 @@ const handleLogout = async () => {
       </button>
 
       <ToastContainer position="top-center" autoClose={3000} theme="dark" />
-    </div>
+    </div >
   );
 }

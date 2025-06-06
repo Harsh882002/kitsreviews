@@ -167,7 +167,7 @@ const AdminDashboard = () => {
                         {formatDate(s.date)}
                       </td>
                        <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">{s.topic}</td>
-                      <td className="p-2 sm:p-3 border border-white/20">{s.studentName}</td>
+                      <td className="p-2 sm:p-3 border border-white/20">{s.studentName} {s.surname}</td>
                       <td className="p-2 sm:p-3 border border-white/20 break-words max-w-sm">{s.message}</td>
                       <td className="p-2 sm:p-3 border border-white/20 text-yellow-400 text-lg">{renderStars(s.rating)}</td>
                     </tr>

@@ -7,6 +7,7 @@ import Signup from "../student/pages/SignUp"
 import { Dashboard } from "../Dashboard"
 import NotAuthorized from "../NotOuthorized"
 import ProtectedRoute from "./ProtectedRoute"
+import EditReview from "../teacher/pages/EditReview"
 
 export const RoutingComponent = () => {
     return (
@@ -57,6 +58,15 @@ export const RoutingComponent = () => {
                     </ProtectedRoute>
                 }
             />
+
+           <Route
+      path="/editreview/:id"
+      element={
+        
+            <EditReview />
+    
+      }
+           />
 
             <Route
                 path="/not-authorized"
