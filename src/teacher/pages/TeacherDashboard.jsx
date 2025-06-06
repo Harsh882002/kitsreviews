@@ -14,7 +14,7 @@ const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [teacher, setTeacher] = useState(null);
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     const auth = getAuth();
@@ -148,7 +148,7 @@ const navigate = useNavigate();
         </button>
       </div>
 
-      <div className="max-w-full sm:max-w-3xl md:max-w-4xl mx-auto bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/30">
+      <div className=" mx-auto bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/30">
 
         {loading ? (
           <div className="text-center py-10">
@@ -220,39 +220,39 @@ const navigate = useNavigate();
                       <th className="p-2 border border-white/20 text-left">Review</th>
                       <th className="p-2 border border-white/20 text-center">Stars</th>
                       <th className="p-2 border border-white/20 text-center">Actions</th>
-                     </tr>
+                    </tr>
                   </thead>
                   <tbody>
-  {students.map((s) => (
-    <tr key={s.id} className="hover:bg-white/10 transition">
-      <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
-        {formatDate(s.date)}
-      </td>
-      <td className="p-2 border border-white/20">{s.topic}</td>
-      <td className="p-2 border border-white/20">{s.studentName} {s.surname}</td>
-      <td className="p-2 border border-white/20">{s.message}</td>
-      <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">
-        {renderStars(s.rating)}
-      </td>
-      <td className="p-2 border border-white/20 text-center">
-        <div className="flex flex-col sm:flex-row sm:justify-center gap-2">
-          <button
-            onClick={() => navigate(`/editreview/${s.id}`)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded shadow text-sm sm:text-base"
-          >
-            ✏️ Edit
-          </button>
-          <button
-            onClick={() => handleDelete(s.id)}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1 rounded shadow text-sm sm:text-base"
-          >
-            🗑️ Delete
-          </button>
-        </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
+                    {students.map((s) => (
+                      <tr key={s.id} className="hover:bg-white/10 transition">
+                        <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
+                          {formatDate(s.date)}
+                        </td>
+                        <td className="p-2 border border-white/20">{s.topic}</td>
+                        <td className="p-2 border border-white/20">{s.studentName} {s.surname}</td>
+                        <td className="p-2 border border-white/20">{s.message}</td>
+                        <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">
+                          {renderStars(s.rating)}
+                        </td>
+                        <td className="p-2 border border-white/20 text-center">
+                          <div className="flex flex-col sm:flex-row sm:justify-center gap-2">
+                            <button
+                              onClick={() => navigate(`/editreview/${s.id}`)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded shadow text-sm sm:text-base"
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1 rounded shadow text-sm sm:text-base"
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
 
                 </table>
               </div>

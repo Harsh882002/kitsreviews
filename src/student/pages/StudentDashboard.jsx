@@ -46,13 +46,13 @@ export default function StudentDashboard({ studentId }) {
   const [teacher, setTeacher] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const navigate = useNavigate();
   const [openReview, setOpenReview] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState('');
   const [ratings, setRatings] = useState({});
   const [feedbackText, setFeedbackText] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [submittedTopics, setSubmittedTopics] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
@@ -66,10 +66,9 @@ export default function StudentDashboard({ studentId }) {
           setLoading(false);
           return;
         }
-        const studentData = studentDoc.data();
-        console.log(studentData)
 
-        setStudent(studentData);
+        const studentData = studentDoc.data();
+        setStudent({ ...studentData, uid: user.uid });
 
         if (studentData.teacherId) {
           const teacherDoc = await getDoc(doc(db, 'users', studentData.teacherId));
@@ -102,6 +101,26 @@ export default function StudentDashboard({ studentId }) {
     fetchData();
   }, [studentId]);
 
+  useEffect(() => {
+    async function fetchSubmittedReviews() {
+      if (!student?.teacherId || !student?.uid) return;
+
+      const q = query(
+        collection(db, 'studentreviews'),
+        where('teacherId', '==', student.teacherId),
+        where('studentId', '==', student.uid)
+      );
+
+      const snapshot = await getDocs(q);
+      const submittedTopics = snapshot.docs.map(doc => doc.data().topic);
+      setSubmittedTopics(submittedTopics);
+    }
+
+    if (student) {
+      fetchSubmittedReviews();
+    }
+  }, [student]);
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     const rating = ratings[selectedTopic] || 0;
@@ -117,11 +136,9 @@ export default function StudentDashboard({ studentId }) {
       showCancelButton: true,
       confirmButtonText: 'Yes, Submit it!',
       cancelButtonText: 'Cancel',
-    })
+    });
 
-    if (!result.isConfirmed) {
-      return;    //user cancelled
-    }
+    if (!result.isConfirmed) return;
 
     try {
       const originalReview = reviews.find(r => r.topic === selectedTopic);
@@ -133,14 +150,14 @@ export default function StudentDashboard({ studentId }) {
         surname: student.surname,
         message: feedbackText,
         rating: rating,
-        date: originalReview?.date || new Date(), // <-- important change here
+        date: originalReview?.date || new Date(),
+        studentId: student.uid,
       };
 
-      console.log("newReview", newReview)
       await addDoc(collection(db, 'studentreviews'), newReview);
 
       toast.success('Feedback submitted!');
-      setSubmitted(true);
+      setSubmittedTopics(prev => [...prev, selectedTopic]);
       setOpenReview(false);
       setFeedbackText('');
       setRatings(prev => {
@@ -155,21 +172,18 @@ export default function StudentDashboard({ studentId }) {
     }
   };
 
-
-
   const handleLogout = async () => {
     try {
       const auth = getAuth();
       await signOut(auth);
-      localStorage.clear(); // Optional: clear saved role
+      localStorage.clear();
       toast.success("LogOut Successfull..")
-      navigate("/") // or use navigate("/") if using react-router
+      navigate("/")
     } catch (error) {
       console.error("Logout Error:", error);
       toast.error("Failed to logout.");
     }
   };
-
 
   if (loading) {
     return (
@@ -210,73 +224,76 @@ export default function StudentDashboard({ studentId }) {
         {reviews.length === 0 && (
           <p className="text-yellow-300 font-semibold">No reviews yet.</p>
         )}
-        {reviews.map(({ id, topic, rating, date }) => (
-          <div
-            key={id}
-            onClick={() => {
-              setSelectedTopic(topic);
-              setOpenReview(true);
-              setSubmitted(false);
-            }}
-            className="cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border border-yellow-300 rounded-xl p-4 shadow-lg"
-          >
-            <p className="text-white text-sm font-semibold mb-1">Topic: <span className="text-yellow-300">{topic}</span></p>
-            <p className="text-white text-xs mb-2">{date.toLocaleDateString()}</p>
+        {reviews.map(({ id, topic, rating, date }) => {
+          const alreadySubmitted = submittedTopics.includes(topic);
 
-            {selectedTopic === topic && openReview &&(
-              <form onSubmit={handleSubmitReview} className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md">
-                <h3 className="text-yellow-300 font-bold text-base">Submit Feedback for: <span className="text-white">{selectedTopic}</span></h3>
-                <div className="flex items-center space-x-3">
-                  <span className="text-yellow-300 font-medium">Rate:</span>
-                  <StarRating
-                    rating={ratings[topic] || 0}
-                    onRate={(star) =>
-                      setRatings((prev) => ({
-                        ...prev,
-                        [topic]: star,
-                      }))
-                    }
+          return (
+            <div
+              key={id}
+              onClick={() => {
+                if (!alreadySubmitted) {
+                  setSelectedTopic(topic);
+                  setOpenReview(true);
+                }
+              }}
+              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'} rounded-xl p-4 shadow-lg`}
+            >
+              <p className="text-white text-sm font-semibold mb-1">Topic: <span className="text-yellow-300">{topic}</span></p>
+              <p className="text-white text-xs mb-2">{date.toLocaleDateString()}</p>
+
+              {alreadySubmitted && (
+                <p className="text-green-400 text-sm font-semibold">✅ Feedback already submitted</p>
+              )}
+
+              {selectedTopic === topic && openReview && !alreadySubmitted && (
+                <form onSubmit={handleSubmitReview} className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md">
+                  <h3 className="text-yellow-300 font-bold text-base">Submit Feedback for: <span className="text-white">{selectedTopic}</span></h3>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-yellow-300 font-medium">Rate:</span>
+                    <StarRating
+                      rating={ratings[topic] || 0}
+                      onRate={(star) =>
+                        setRatings((prev) => ({
+                          ...prev,
+                          [topic]: star,
+                        }))
+                      }
+                    />
+                  </div>
+                  <textarea
+                    rows={3}
+                    className="w-full p-2 rounded bg-transparent border border-yellow-300 placeholder-yellow-300 text-white"
+                    placeholder="Your feedback..."
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
                   />
-                </div>
-                <textarea
-                  rows={3}
-                  className="w-full p-2 rounded bg-transparent border border-yellow-300 placeholder-yellow-300 text-white"
-                  placeholder="Your feedback..."
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                />
-                <div className="flex justify-between gap-3">
-                  <button type="submit" className="flex-1 bg-yellow-400 text-indigo-900 font-bold py-2 rounded-xl hover:bg-yellow-500 transition">
-                    Submit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenReview(false);
-                      setSelectedTopic('');
-                       setFeedbackText('');
-                      setRatings((prev) => {
-                        const updated = { ...prev };
-                        delete updated[selectedTopic];
-                        return updated;
-                      });
-                    }}
-                    className="flex-1 bg-gray-600 text-white py-2 rounded-xl hover:bg-gray-700 transition">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        ))
-        }
-      </section >
-
-      {submitted && (
-        <p className="max-w-md w-full text-green-400 font-semibold text-center mt-4">
-          Feedback Submitted ✅
-        </p>
-      )}
+                  <div className="flex justify-between gap-3">
+                    <button type="submit" className="flex-1 font-bold py-2 rounded-xl transition bg-yellow-400 text-indigo-900 hover:bg-yellow-500">
+                      Submit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenReview(false);
+                        setSelectedTopic('');
+                        setFeedbackText('');
+                        setRatings((prev) => {
+                          const updated = { ...prev };
+                          delete updated[selectedTopic];
+                          return updated;
+                        });
+                      }}
+                      className="flex-1 bg-gray-600 text-white py-2 rounded-xl hover:bg-gray-700 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          );
+        })}
+      </section>
 
       <button
         onClick={handleLogout}
@@ -286,6 +303,6 @@ export default function StudentDashboard({ studentId }) {
       </button>
 
       <ToastContainer position="top-center" autoClose={3000} theme="dark" />
-    </div >
+    </div>
   );
 }

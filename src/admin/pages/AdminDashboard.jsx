@@ -197,7 +197,7 @@ const AdminDashboard = () => {
                 <tbody>
                   {teachers.map((teacher) => (
                     <tr key={teacher.id} className="hover:bg-green-100 transition text-center">
-                      <td className="p-2 sm:p-3 border border-gray-300 break-words max-w-xs">{teacher.name || 'N/A'}</td>
+                      <td className="p-2 sm:p-3 border border-gray-300 break-words max-w-xs">{teacher.name }{teacher.surname}</td>
                       <td className="p-2 sm:p-3 border border-gray-300 break-words max-w-xs">{teacher.email || 'N/A'}</td>
                       <td className="p-2 sm:p-3 border border-gray-300 break-words max-w-xs">{teacher.subject || 'N/A'}</td>
                     </tr>
