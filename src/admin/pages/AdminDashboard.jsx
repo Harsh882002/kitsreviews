@@ -20,6 +20,8 @@ const AdminDashboard = () => {
 
   const navigate = useNavigate();
 
+console.log("students", students)
+
   const fetchStudentsData = async () => {
     setLoadingStudents(true);
     try {
@@ -123,7 +125,7 @@ const AdminDashboard = () => {
       <div className="bg-white/10 backdrop-blur-md p-4 sm:p-6 rounded-2xl max-w-5xl w-full shadow-lg border border-white/30 space-y-6">
         <div className="flex flex-wrap justify-center sm:justify-between gap-3 mb-6">
           <button onClick={() => setShowForm(!showForm)} className="bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-xl hover:bg-yellow-500 transition">
-            {showForm ? 'Hide Form' : '➕ Add Teacher'}
+            {showForm ? 'Hide Form' : '➕ Add Mentor'}
           </button>
 
           <button onClick={() => {
@@ -141,7 +143,7 @@ const AdminDashboard = () => {
             setStudentReviews([]);
             fetchTeachers();
           }} className={`font-bold px-4 py-2 rounded-xl transition ${showTeachers ? 'bg-green-600' : 'bg-green-400 hover:bg-green-500'} text-white`}>
-            👁️ See Teachers
+            👁️ See Mentors
           </button>
 
           <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl transition">
@@ -159,6 +161,8 @@ const AdminDashboard = () => {
                 <tr>
                   <th className="p-3 border border-white/20">Name</th>
                   <th className="p-3 border border-white/20">Email</th>
+                  {/* <th className="p-3 border border-white/20">Mentor</th> */}
+
                   <th className="p-3 border border-white/20">Action</th>
                 </tr>
               </thead>
@@ -167,6 +171,7 @@ const AdminDashboard = () => {
                   <tr key={s.id} className="hover:bg-white/10 text-center transition">
                     <td className="p-3 border border-white/20">{s.name} {s.surname}</td>
                     <td className="p-3 border border-white/20">{s.email}</td>
+
                     <td className="p-3 border border-white/20">
                       <button
                         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
