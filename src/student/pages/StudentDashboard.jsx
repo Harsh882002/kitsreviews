@@ -96,9 +96,11 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white py-10 px-4">
-      <h1 className=" text-yellow-400 text-4xl font-bold text-center mb-10">
-        Welcome, {student.name} {student.surname}
+      
+      <h1 className="text-3xl sm:text-4xl font-extrabold mb-8 text-center drop-shadow-lg">
+        Welcome, <span className="text-yellow-400">{student.name} {student.surname}</span>! 🎓
       </h1>
+
 
       {/* Profile Card Section */}
       <div className="flex justify-center mb-10 px-4">
