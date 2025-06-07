@@ -121,7 +121,7 @@ console.log("students", students)
       <h1 className="text-3xl sm:text-4xl font-extrabold mb-8 text-center drop-shadow-lg">
         Welcome, <span className="text-yellow-400">Admin</span>! 🎓
       </h1>
-
+        
       <div className="bg-white/10 backdrop-blur-md p-4 sm:p-6 rounded-2xl max-w-5xl w-full shadow-lg border border-white/30 space-y-6">
         <div className="flex flex-wrap justify-center sm:justify-between gap-3 mb-6">
           <button onClick={() => setShowForm(!showForm)} className="bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-xl hover:bg-yellow-500 transition">
