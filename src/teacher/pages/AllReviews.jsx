@@ -58,18 +58,20 @@ const AllReviews = () => {
                 // 1. Delete the main review document
                 await deleteDoc(doc(db, 'reviews', id));
 
-                // //Query all feedback related to this review
-                // const feedbackQuery = query(collection(db, 'studentreviews'), where('teacherId', '==', reviews.teacherId));
-                // const feedbackSnapshot = await getDocs(feedbackQuery);
+                // 2. Query all feedback related to this review
+    const feedbackQuery = query(collection(db, 'studentreviews'),
+     where('reviewId', '==', id));
+    const feedbackSnapshot = await getDocs(feedbackQuery);
 
-                // // 3. Batch delete all feedback docs
-                // const batch = writeBatch(db);
-                // feedbackSnapshot.forEach(docSnap => {
-                //     batch.delete(doc(db, 'studentreviews', docSnap.id));
-                // });
+    // 3. Batch delete all feedback docs
+    const batch = writeBatch(db);
+    feedbackSnapshot.forEach(docSnap => {
+      batch.delete(doc(db, 'studentreviews', docSnap.id));
+    });
 
-                // await batch.commit();
-                toast.success('Review and related feedback deleted successfully');
+    await batch.commit();
+
+                 toast.success('Review and related feedback deleted successfully');
 
 
                 setReviews(prev => prev.filter(review => review.id !== id));

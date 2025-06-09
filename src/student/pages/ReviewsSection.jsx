@@ -12,6 +12,8 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
   const [feedbackText, setFeedbackText] = useState('');
   const [ratings, setRatings] = useState({});
 
+
+  console.log("student", student);
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     const rating = ratings[selectedTopic] || 0;
@@ -36,6 +38,7 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
       const review = reviews.find(r => r.topic === selectedTopic);
       const newReview = {
         teacherId: student.teacherId,
+        reviewId: review.id,
         topic: selectedTopic,
         studentName: student.name,
         surname: student.surname,
