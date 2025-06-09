@@ -17,7 +17,6 @@ export default function Login() {
   const navigate = useNavigate();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // ✅ Redirect to dashboard if already logged in
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -110,6 +109,14 @@ export default function Login() {
                 className="w-full px-4 py-2 mt-1 bg-white border border-black/30 text-black rounded-xl focus:outline-none focus:ring-2 focus:ring-black placeholder:text-black/50"
                 placeholder="Enter your password"
               />
+              <div className="text-right mt-2">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-blue-700 hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
 
             <button
@@ -132,10 +139,8 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Toast Container */}
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar  />
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
 
-      {/* Custom CSS */}
       <style jsx>{`
         .animate-gradient-x {
           background-size: 400% 400%;

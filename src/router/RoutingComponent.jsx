@@ -10,6 +10,7 @@ import ProtectedRoute from "./ProtectedRoute"
 import EditReview from "../teacher/pages/EditReview"
 import EditReviewForm from "../student/pages/EditReview"
 import AllReviews from "../teacher/pages/AllReviews"
+import ForgetPassword from "../ForgetPassword"
 
 export const RoutingComponent = () => {
     return (
@@ -71,19 +72,26 @@ export const RoutingComponent = () => {
             />
 
 
-               <Route
-               path="/edit-review/:topic"
-               element={
-                <EditReviewForm />
-               }
+            <Route
+                path="/edit-review/:topic"
+                element={
+                    <EditReviewForm />
+                }
             />
 
 
             <Route
-  path="/allreview/:teacherid"
-  element={<AllReviews />}
+                path="/allreview/:teacherid"
+                element={<AllReviews />}
             />
 
+
+            <Route
+                path="/forgot-password"
+                element={
+                    <ForgetPassword />
+                }
+            />
             <Route
                 path="/not-authorized"
                 element={
@@ -91,7 +99,7 @@ export const RoutingComponent = () => {
                 }
             />
 
-         
+
         </Routes>
     )
 }
