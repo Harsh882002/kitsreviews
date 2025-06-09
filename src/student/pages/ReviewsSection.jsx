@@ -91,17 +91,17 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
                 Topic: <span className="text-yellow-300">{topic}</span>
               </p>
               <p className="text-white text-xs mb-2">{date.toLocaleDateString()}</p>
-{alreadySubmitted && (
-  <div className="relative">
-    <p className="text-green-400 text-sm font-semibold">✅ Feedback already submitted</p>
-    <Link
-      to={`/edit-review/${topic}`}
-      className="absolute top-0 right-5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1 px-2 rounded-md"
-    >
-      ✏️ Edit
-    </Link>
-  </div>
-)}
+              {alreadySubmitted && (
+                <div className="relative">
+                  <p className="text-green-400 text-sm font-semibold">✅ Feedback already submitted</p>
+                  <Link
+                    to={`/edit-review/${topic}`}
+                    className="absolute top-0 right-5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1 px-2 rounded-md"
+                  >
+                    ✏️ Edit
+                  </Link>
+                </div>
+              )}
 
 
 

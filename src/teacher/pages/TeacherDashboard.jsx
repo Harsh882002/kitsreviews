@@ -4,7 +4,7 @@ import { db } from '../../firebaseConfig';
 import Swal from 'sweetalert2';
 import { getAuth, signOut } from 'firebase/auth';
 import { toast, ToastContainer } from 'react-toastify';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 
 const TeacherDashboard = () => {
@@ -170,6 +170,15 @@ const TeacherDashboard = () => {
                 className="bg-yellow-400 text-indigo-900 font-bold px-6 py-2 rounded-xl hover:bg-yellow-500 transition"
               >
                 {showForm ? 'Cancel' : '➕ Add Review'}
+
+              </button>
+              <button>
+                <Link
+                  to={`/allreview/${teacher?.uid}`}
+                className="bg-green-400 text-indigo-900 font-bold px-6 py-2 m-10 rounded-xl hover:bg-green-500 transition"
+                >
+                  See  Reviews
+                </Link>
               </button>
             </div>
 
