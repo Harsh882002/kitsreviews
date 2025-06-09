@@ -8,6 +8,7 @@ import { Dashboard } from "../Dashboard"
 import NotAuthorized from "../NotOuthorized"
 import ProtectedRoute from "./ProtectedRoute"
 import EditReview from "../teacher/pages/EditReview"
+import EditReviewForm from "../student/pages/EditReview"
 
 export const RoutingComponent = () => {
     return (
@@ -59,14 +60,23 @@ export const RoutingComponent = () => {
                 }
             />
 
-           <Route
-      path="/editreview/:id"
-      element={
-        
-            <EditReview />
-    
-      }
-           />
+            <Route
+                path="/editreview/:id"
+                element={
+
+                    <EditReview />
+
+                }
+            />
+
+
+               <Route
+               path="/edit-review/:topic"
+               element={
+                <EditReviewForm />
+               }
+            
+            />
 
             <Route
                 path="/not-authorized"
@@ -74,6 +84,8 @@ export const RoutingComponent = () => {
                     <NotAuthorized />
                 }
             />
+
+         
         </Routes>
     )
 }

@@ -4,6 +4,7 @@ import { db } from '../../firebaseConfig';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import StarRating from './StarRating';
+import { Link } from 'react-router';
 
 export default function ReviewsSection({ reviews, student, submittedTopics, setSubmittedTopics }) {
   const [selectedTopic, setSelectedTopic] = useState('');
@@ -83,18 +84,26 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
                   setOpenReview(true);
                 }
               }}
-              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${
-                alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'
-              } rounded-xl p-4 shadow-lg`}
+              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'
+                } rounded-xl p-4 shadow-lg`}
             >
               <p className="text-white text-sm font-semibold mb-1">
                 Topic: <span className="text-yellow-300">{topic}</span>
               </p>
               <p className="text-white text-xs mb-2">{date.toLocaleDateString()}</p>
+{alreadySubmitted && (
+  <div className="relative">
+    <p className="text-green-400 text-sm font-semibold">✅ Feedback already submitted</p>
+    <Link
+      to={`/edit-review/${topic}`}
+      className="absolute top-0 right-5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1 px-2 rounded-md"
+    >
+      ✏️ Edit
+    </Link>
+  </div>
+)}
 
-              {alreadySubmitted && (
-                <p className="text-green-400 text-sm font-semibold">✅ Feedback already submitted</p>
-              )}
+
 
               {selectedTopic === topic && openReview && !alreadySubmitted && (
                 <div onClick={(e) => e.stopPropagation()}>

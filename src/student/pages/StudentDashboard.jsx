@@ -18,6 +18,8 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  console.log("reviewsss" , reviews)
+
   useEffect(() => {
     async function fetchData() {
       try {

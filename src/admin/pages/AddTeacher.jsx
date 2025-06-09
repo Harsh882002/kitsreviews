@@ -100,7 +100,7 @@ const TeacherForm = () => {
       onSubmit={handleSubmit}
       className="bg-white/10 backdrop-blur-md p-6 rounded-2xl max-w-md w-full text-white border border-white/30 shadow-xl space-y-6"
     >
-      <h2 className="text-2xl font-semibold text-yellow-300 text-center">Add Teacher</h2>
+      <h2 className="text-2xl font-semibold text-yellow-300 text-center">Add Mentor</h2>
 
       {[
         { label: 'First Name', name: 'name', type: 'text' },
