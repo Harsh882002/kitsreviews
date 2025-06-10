@@ -8,7 +8,7 @@ const TeachersTable = ({ loading, teachers }) => {
         <tr>
           <th className="p-2 sm:p-3 border border-gray-300">Name</th>
           <th className="p-2 sm:p-3 border border-gray-300">Email</th>
-          <th className="p-2 sm:p-3 border border-gray-300">Subject</th>
+          <th className="p-2 sm:p-3 border border-gray-300">SubjectS</th>
         </tr>
       </thead>
       <tbody>

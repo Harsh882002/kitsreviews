@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import TeacherForm from './AddTeacher';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { getAuth, signOut } from 'firebase/auth';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
+import Swal from 'sweetalert2';
+import { db } from '../../firebaseConfig';
 
 const AdminDashboard = () => {
   const [students, setStudents] = useState([]);
@@ -19,8 +21,6 @@ const AdminDashboard = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
   const navigate = useNavigate();
-
-console.log("students", students)
 
   const fetchStudentsData = async () => {
     setLoadingStudents(true);
@@ -68,6 +68,7 @@ console.log("students", students)
       setTeachers(teacherList);
     } catch (error) {
       console.error('Error fetching teachers:', error);
+      toast.error('Failed to fetch teachers');
     } finally {
       setLoadingTeachers(false);
     }
@@ -86,12 +87,34 @@ console.log("students", students)
       const studentList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setTeacherStudents(studentList);
       setSelectedTeacher(teacherUid);
-      setShowTeachers(false); // Hide teacher table
     } catch (error) {
       console.error('Error fetching teacher students:', error);
-      toast.error('Failed to fetch teacher’s students');
+      toast.error('Failed to fetch teacher students');
     } finally {
       setLoadingTeachers(false);
+    }
+  };
+
+  const handledeleteTeacher = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Teacher?',
+      text: "Are you sure you want to delete this Teacher?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e3342f',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, "users", id));
+        toast.success("Teacher Deleted");
+        fetchTeachers();
+      } catch (err) {
+        console.error("Delete error:", err);
+        toast.error("Failed to delete Teacher");
+      }
     }
   };
 
@@ -121,7 +144,7 @@ console.log("students", students)
       <h1 className="text-3xl sm:text-4xl font-extrabold mb-8 text-center drop-shadow-lg">
         Welcome, <span className="text-yellow-400">Admin</span>! 🎓
       </h1>
-        
+
       <div className="bg-white/10 backdrop-blur-md p-4 sm:p-6 rounded-2xl max-w-5xl w-full shadow-lg border border-white/30 space-y-6">
         <div className="flex flex-wrap justify-center sm:justify-between gap-3 mb-6">
           <button onClick={() => setShowForm(!showForm)} className="bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-xl hover:bg-yellow-500 transition">
@@ -245,13 +268,23 @@ console.log("students", students)
                     <td className="p-3 border border-gray-300">{t.email}</td>
                     <td className="p-3 border border-gray-300">{t.subject}</td>
                     <td className="p-3 border border-gray-300">
-                      <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                        onClick={() => fetchStudentsOfTeacher(t.id)}
-                      >
-                        👁️ See Students
-                      </button>
+                      <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full sm:w-auto"
+                          onClick={() => fetchStudentsOfTeacher(t.id)}
+                        >
+                          👁️ See Students
+                        </button>
+
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto"
+                          onClick={() => handledeleteTeacher(t.id)}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
