@@ -12,6 +12,7 @@ const ForgetPassword = () => {
         try {
             await sendPasswordResetEmail(auth, email.trim());
             toast.success("If an account exists with this email, a reset link has been sent.");
+            setEmail("")
         } catch (error) {
             console.log(error);
             toast.error(error.message || "Failed to send password reset email.");

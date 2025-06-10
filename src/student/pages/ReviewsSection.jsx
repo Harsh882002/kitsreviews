@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { toast } from 'react-toastify';
@@ -11,9 +11,27 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
   const [openReview, setOpenReview] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [ratings, setRatings] = useState({});
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionBoxRef = useRef(null);
 
+const suggestions = [
+  "The explanations were clear and easy to understand.",
+  "The teacher made the subject interesting and engaging.",
+  "I would appreciate more real-world examples.",
+  "The lessons were well-structured and organized.",
+  "Sometimes the pace was too fast—slowing down would help.",
+  "The teacher was approachable and open to questions.",
+  "More interactive activities would improve learning.",
+  "The feedback on assignments was helpful and detailed.",
+  "Providing lecture notes in advance would be useful.",
+  "Overall, I enjoyed the class and learned a lot!",
+];
 
-  console.log("student", student);
+  const handleSuggestionClick = (text) => {
+    setFeedbackText(prev => prev ? prev + ' ' + text : text);
+    setShowSuggestions(false);
+  };
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     const rating = ratings[selectedTopic] || 0;
@@ -106,13 +124,11 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
                 </div>
               )}
 
-
-
               {selectedTopic === topic && openReview && !alreadySubmitted && (
                 <div onClick={(e) => e.stopPropagation()}>
                   <form
                     onSubmit={handleSubmitReview}
-                    className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md"
+                    className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md relative"
                   >
                     <h3 className="text-yellow-300 font-bold text-base">
                       Submit Feedback for: <span className="text-white">{selectedTopic}</span>
@@ -131,13 +147,43 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
                       />
                     </div>
 
-                    <textarea
-                      rows={3}
-                      className="w-full p-2 rounded bg-transparent border border-yellow-300 placeholder-yellow-300 text-white"
-                      placeholder="Your feedback..."
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                    />
+                    <div className="relative">
+                      <textarea
+                        rows={3}
+                        className="w-full p-2 rounded bg-transparent border border-yellow-300 placeholder-yellow-300 text-white"
+                        placeholder="Your feedback..."
+                        value={feedbackText}
+                        onChange={(e) => setFeedbackText(e.target.value)}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={(e) => {
+                          if (!e.relatedTarget || !suggestionBoxRef.current?.contains(e.relatedTarget)) {
+                            setShowSuggestions(false);
+                          }
+                        }}
+                      />
+                      
+                      {showSuggestions && (
+                        <div
+                          ref={suggestionBoxRef}
+                          className="absolute z-10 bg-yellow-100 border border-yellow-300 rounded p-2 mt-1 w-full"
+                          style={{ top: '100%' }}
+                        >
+                          <p className="text-sm font-semibold text-yellow-900">💡 Suggestions:</p>
+                          <ul className="mt-1 space-y-1">
+                            {suggestions.map((text, index) => (
+                              <li
+                                key={index}
+                                className="text-blue-700 cursor-pointer text-sm hover:underline"
+                                onClick={() => handleSuggestionClick(text)}
+                                tabIndex={0}
+                              >
+                                {text}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="flex justify-between gap-3">
                       <button
