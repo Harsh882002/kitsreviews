@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+// your imports remain unchanged
+import { useState } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { toast } from 'react-toastify';
@@ -12,20 +13,19 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
   const [feedbackText, setFeedbackText] = useState('');
   const [ratings, setRatings] = useState({});
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const suggestionBoxRef = useRef(null);
 
-const suggestions = [
-  "The explanations were clear and easy to understand.",
-  "The teacher made the subject interesting and engaging.",
-  "I would appreciate more real-world examples.",
-  "The lessons were well-structured and organized.",
-  "Sometimes the pace was too fast—slowing down would help.",
-  "The teacher was approachable and open to questions.",
-  "More interactive activities would improve learning.",
-  "The feedback on assignments was helpful and detailed.",
-  "Providing lecture notes in advance would be useful.",
-  "Overall, I enjoyed the class and learned a lot!",
-];
+  const suggestions = [
+    "The explanations were clear and easy to understand.",
+    "The teacher made the subject interesting and engaging.",
+    "I would appreciate more real-world examples.",
+    "The lessons were well-structured and organized.",
+    "Sometimes the pace was too fast—slowing down would help.",
+    "The teacher was approachable and open to questions.",
+    "More interactive activities would improve learning.",
+    "The feedback on assignments was helpful and detailed.",
+    "Providing lecture notes in advance would be useful.",
+    "Overall, I enjoyed the class and learned a lot!",
+  ];
 
   const handleSuggestionClick = (text) => {
     setFeedbackText(prev => prev ? prev + ' ' + text : text);
@@ -93,7 +93,7 @@ const suggestions = [
           <p className="text-yellow-300 font-semibold text-center">No reviews yet.</p>
         )}
 
-        {reviews.map(({ id, topic, rating, date }) => {
+        {reviews.map(({ id, topic, date }) => {
           const alreadySubmitted = submittedTopics.includes(topic);
 
           return (
@@ -105,13 +105,15 @@ const suggestions = [
                   setOpenReview(true);
                 }
               }}
-              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'
-                } rounded-xl p-4 shadow-lg`}
+              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${
+                alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'
+              } rounded-xl p-4 shadow-lg`}
             >
               <p className="text-white text-sm font-semibold mb-1">
                 Topic: <span className="text-yellow-300">{topic}</span>
               </p>
               <p className="text-white text-xs mb-2">{date.toLocaleDateString()}</p>
+
               {alreadySubmitted && (
                 <div className="relative">
                   <p className="text-green-400 text-sm font-semibold">✅ Feedback already submitted</p>
@@ -128,7 +130,7 @@ const suggestions = [
                 <div onClick={(e) => e.stopPropagation()}>
                   <form
                     onSubmit={handleSubmitReview}
-                    className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md relative"
+                    className="mt-4 bg-white/10 p-4 rounded-xl border border-yellow-300 space-y-3 shadow-md"
                   >
                     <h3 className="text-yellow-300 font-bold text-base">
                       Submit Feedback for: <span className="text-white">{selectedTopic}</span>
@@ -147,7 +149,7 @@ const suggestions = [
                       />
                     </div>
 
-                    <div className="relative">
+                    <div>
                       <textarea
                         rows={3}
                         className="w-full p-2 rounded bg-transparent border border-yellow-300 placeholder-yellow-300 text-white"
@@ -155,27 +157,26 @@ const suggestions = [
                         value={feedbackText}
                         onChange={(e) => setFeedbackText(e.target.value)}
                         onFocus={() => setShowSuggestions(true)}
-                        onBlur={(e) => {
-                          if (!e.relatedTarget || !suggestionBoxRef.current?.contains(e.relatedTarget)) {
-                            setShowSuggestions(false);
-                          }
-                        }}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                       />
-                      
                       {showSuggestions && (
-                        <div
-                          ref={suggestionBoxRef}
-                          className="absolute z-10 bg-yellow-100 border border-yellow-300 rounded p-2 mt-1 w-full"
-                          style={{ top: '100%' }}
-                        >
-                          <p className="text-sm font-semibold text-yellow-900">💡 Suggestions:</p>
-                          <ul className="mt-1 space-y-1">
+                        <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mt-2 w-full shadow-lg">
+                          <div className="flex justify-between items-center mb-1">
+                            <p className="text-sm font-semibold text-yellow-900">💡 Suggestions:</p>
+                            <button 
+                              type="button"
+                              onClick={() => setShowSuggestions(false)}
+                              className="text-yellow-700 hover:text-yellow-900 text-lg"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <ul className="mt-1 space-y-1 max-h-48 overflow-y-auto">
                             {suggestions.map((text, index) => (
                               <li
                                 key={index}
-                                className="text-blue-700 cursor-pointer text-sm hover:underline"
-                                onClick={() => handleSuggestionClick(text)}
-                                tabIndex={0}
+                                className="text-blue-700 cursor-pointer text-sm hover:underline px-2 py-1 hover:bg-yellow-200 rounded"
+                                onMouseDown={() => handleSuggestionClick(text)}
                               >
                                 {text}
                               </li>
