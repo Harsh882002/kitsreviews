@@ -21,7 +21,6 @@ const AdminDashboard = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
   const navigate = useNavigate();
-
   const fetchStudentsData = async () => {
     setLoadingStudents(true);
     try {
@@ -29,6 +28,7 @@ const AdminDashboard = () => {
       const studentQuery = query(collection(db, 'users'), where('role', '==', 'student'));
       const snap = await getDocs(studentQuery);
       const studentList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log("stuuuu", studentList)
       setStudents(studentList);
       setStudentReviews([]);
       setSelectedStudent(null);
@@ -39,6 +39,7 @@ const AdminDashboard = () => {
       setLoadingStudents(false);
     }
   };
+
 
   const fetchStudentReviews = async (studentName) => {
     setLoadingStudents(true);
@@ -58,6 +59,7 @@ const AdminDashboard = () => {
     }
   };
 
+
   const fetchTeachers = async () => {
     setLoadingTeachers(true);
     try {
@@ -73,6 +75,7 @@ const AdminDashboard = () => {
       setLoadingTeachers(false);
     }
   };
+
 
   const fetchStudentsOfTeacher = async (teacherUid) => {
     setLoadingTeachers(true);
@@ -94,6 +97,7 @@ const AdminDashboard = () => {
       setLoadingTeachers(false);
     }
   };
+
 
   const handledeleteTeacher = async (id) => {
     const result = await Swal.fire({
@@ -118,6 +122,7 @@ const AdminDashboard = () => {
     }
   };
 
+
   const handleLogout = async () => {
     try {
       const auth = getAuth();
@@ -130,6 +135,10 @@ const AdminDashboard = () => {
       toast.error('Logout failed');
     }
   };
+
+  const handleRedirectToStudent = (studentId) => {
+    navigate(`/studentdetails/${studentId}`);
+  }
 
   const formatDate = (timestamp) => {
     if (!timestamp?.seconds) return 'Invalid date';
@@ -195,14 +204,22 @@ const AdminDashboard = () => {
                     <td className="p-3 border border-white/20">{s.name} {s.surname}</td>
                     <td className="p-3 border border-white/20">{s.email}</td>
 
-                    <td className="p-3 border border-white/20">
+                    <td className="p-3 border border-white/20 flex flex-col sm:flex-row gap-2">
                       <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
                         onClick={() => fetchStudentReviews(s.name)}
                       >
                         See Review
                       </button>
+
+                      <button
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
+                        onClick={() => handleRedirectToStudent(s.id)}
+                      >
+                        See Details
+                      </button>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
