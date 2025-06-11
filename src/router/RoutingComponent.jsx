@@ -12,6 +12,7 @@ import EditReviewForm from "../student/pages/EditReview"
 import AllReviews from "../teacher/pages/AllReviews"
 import ForgetPassword from "../ForgetPassword"
 import StudentDetails from "../admin/pages/StudentDetails"
+import UpdateStudentForm from "../student/pages/UpdateStudent"
 
 export const RoutingComponent = () => {
     return (
@@ -95,11 +96,19 @@ export const RoutingComponent = () => {
             />
 
             <Route
-             path="/studentdetails/:id"
-             element={
-                <StudentDetails />
-             }
+                path="/studentdetails/:id"
+                element={
+                    <StudentDetails />
+                }
             />
+
+            <Route path="/student/update/:id"
+                element={
+                    <UpdateStudentForm />
+                }
+            />
+
+
             <Route
                 path="/not-authorized"
                 element={
