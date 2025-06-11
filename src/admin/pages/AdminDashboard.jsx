@@ -40,7 +40,50 @@ const AdminDashboard = () => {
     }
   };
 
+const getMonthlyRatingsForTeacher = async (teacherId) => {
+  const q = query(
+    collection(db, "studentreviews"),
+    where("teacherId", "==", teacherId)
+  );
+  const snapshot = await getDocs(q);
 
+  if (snapshot.empty) {
+    return { "No reviews yet": "0" };
+  }
+
+  const monthMap = {};
+
+  snapshot.docs.forEach(doc => {
+    const data = doc.data();
+    const timestamp = data.date?.seconds;
+    const rating = data.rating || 0;
+
+    if (timestamp) {
+      const date = new Date(timestamp * 1000);
+      const month = date.toLocaleString('default', { month: 'long' });
+      const year = date.getFullYear();
+      const key = `${month} ${year}`;
+
+      if (!monthMap[key]) {
+        monthMap[key] = { total: 0, count: 0 };
+      }
+
+      monthMap[key].total += rating;
+      monthMap[key].count += 1;
+    }
+  });
+
+  const result = {};
+  for (const key in monthMap) {
+    const { total, count } = monthMap[key];
+    result[key] = (total / count).toFixed(1);
+  }
+
+  return result;
+};
+
+
+ 
   const fetchStudentReviews = async (studentName) => {
     setLoadingStudents(true);
     try {
@@ -59,22 +102,35 @@ const AdminDashboard = () => {
     }
   };
 
+const fetchTeachers = async () => {
+  setLoadingTeachers(true);
+  try {
+    const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
+    const snap = await getDocs(q);
 
-  const fetchTeachers = async () => {
-    setLoadingTeachers(true);
-    try {
-      const db = getFirestore();
-      const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
-      const snap = await getDocs(q);
-      const teacherList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTeachers(teacherList);
-    } catch (error) {
-      console.error('Error fetching teachers:', error);
-      toast.error('Failed to fetch teachers');
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
+    const teacherList = await Promise.all(
+      snap.docs.map(async (doc) => {
+        const data = doc.data();
+        const monthlyRatings = await getMonthlyRatingsForTeacher(doc.id);
+        return {
+          id: doc.id,
+          ...data,
+          monthlyRatings,
+        };
+      })
+    );
+
+    setTeachers(teacherList);
+  } catch (error) {
+    console.error('Error fetching teachers:', error);
+    toast.error('Failed to fetch teachers');
+  } finally {
+    setLoadingTeachers(false);
+  }
+};
+
+
+
 
 
   const fetchStudentsOfTeacher = async (teacherUid) => {
@@ -275,6 +331,8 @@ const AdminDashboard = () => {
                   <th className="p-3 border border-gray-300">Name</th>
                   <th className="p-3 border border-gray-300">Email</th>
                   <th className="p-3 border border-gray-300">Subject</th>
+                  <th className="p-3 border border-gray-300">Monthly Ratings</th>
+
                   <th className="p-3 border border-gray-300">Actions</th>
                 </tr>
               </thead>
@@ -284,6 +342,15 @@ const AdminDashboard = () => {
                     <td className="p-3 border border-gray-300">{t.name} {t.surname}</td>
                     <td className="p-3 border border-gray-300">{t.email}</td>
                     <td className="p-3 border border-gray-300">{t.subject}</td>
+<td className="p-3 text-white border border-gray-300 text-sm text-gray-700">
+  {Object.entries(t.monthlyRatings || {}).map(([month, rating]) => (
+    <div key={month}>
+      <strong>{month}:</strong> {rating}
+    </div>
+  ))}
+</td>
+
+
                     <td className="p-3 border border-gray-300">
                       <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
                         <button
@@ -292,6 +359,8 @@ const AdminDashboard = () => {
                         >
                           👁️ See Students
                         </button>
+
+
 
                         <button
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto"
