@@ -1,5 +1,3 @@
-// src/components/student/UpdateStudentForm.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -65,6 +63,34 @@ export default function UpdateStudentForm() {
             />
           </div>
         ))}
+
+        {/* New field: Parent's Phone */}
+        <div className="mb-4">
+          <label className="block mb-1">Parent's Phone Number</label>
+          <input
+            type="text"
+            name="phone"
+            value={student.phone || ''}
+            onChange={handleChange}
+            placeholder="10-digit mobile number"
+            className="w-full p-2 rounded bg-white/20 border border-white/30 text-white"
+            required
+          />
+        </div>
+
+        {/* New field: Parent's Email */}
+        <div className="mb-4">
+          <label className="block mb-1">Parent's Email</label>
+          <input
+            type="email"
+            name="parentEmail"
+            value={student.parentEmail || ''}
+            onChange={handleChange}
+            placeholder="example@email.com"
+            className="w-full p-2 rounded bg-white/20 border border-white/30 text-white"
+            required
+          />
+        </div>
 
         <div className="text-center mt-6">
           <button

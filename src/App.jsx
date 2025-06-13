@@ -1,5 +1,6 @@
  import { BrowserRouter } from "react-router"
 import { RoutingComponent } from "./router/RoutingComponent"
+import SendFeedBack from "./admin/pages/SendFeedBack"
 
  
 
@@ -10,6 +11,8 @@ function App() {
     <BrowserRouter>
     <RoutingComponent />
     </BrowserRouter>
+
+
     </>
   )
 }

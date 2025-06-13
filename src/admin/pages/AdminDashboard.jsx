@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [teacherStudents, setTeacherStudents] = useState([]);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [showOptions,setShowOptions] = useState(null);
 
   const navigate = useNavigate();
   const fetchStudentsData = async () => {
@@ -40,50 +41,56 @@ const AdminDashboard = () => {
     }
   };
 
-const getMonthlyRatingsForTeacher = async (teacherId) => {
-  const q = query(
-    collection(db, "studentreviews"),
-    where("teacherId", "==", teacherId)
-  );
-  const snapshot = await getDocs(q);
+  const getMonthlyRatingsForTeacher = async (teacherId) => {
+    const q = query(
+      collection(db, "studentreviews"),
+      where("teacherId", "==", teacherId)
+    );
+    const snapshot = await getDocs(q);
 
-  if (snapshot.empty) {
-    return { "No reviews yet": "0" };
-  }
-
-  const monthMap = {};
-
-  snapshot.docs.forEach(doc => {
-    const data = doc.data();
-    const timestamp = data.date?.seconds;
-    const rating = data.rating || 0;
-
-    if (timestamp) {
-      const date = new Date(timestamp * 1000);
-      const month = date.toLocaleString('default', { month: 'long' });
-      const year = date.getFullYear();
-      const key = `${month} ${year}`;
-
-      if (!monthMap[key]) {
-        monthMap[key] = { total: 0, count: 0 };
-      }
-
-      monthMap[key].total += rating;
-      monthMap[key].count += 1;
+    if (snapshot.empty) {
+      return { "No reviews yet": "0" };
     }
-  });
 
-  const result = {};
-  for (const key in monthMap) {
-    const { total, count } = monthMap[key];
-    result[key] = (total / count).toFixed(1);
+    const monthMap = {};
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const timestamp = data.date?.seconds;
+      const rating = data.rating || 0;
+
+      if (timestamp) {
+        const date = new Date(timestamp * 1000);
+        const month = date.toLocaleString('default', { month: 'long' });
+        const year = date.getFullYear();
+        const key = `${month} ${year}`;
+
+        if (!monthMap[key]) {
+          monthMap[key] = { total: 0, count: 0 };
+        }
+
+        monthMap[key].total += rating;
+        monthMap[key].count += 1;
+      }
+    });
+
+    const result = {};
+    for (const key in monthMap) {
+      const { total, count } = monthMap[key];
+      result[key] = (total / count).toFixed(1);
+    }
+
+    return result;
+  };
+
+
+
+  //function that to send message via whatsapp
+  const handleSendWhatsApp = (studentId) =>{
+    navigate(`/sendfeedback/${studentId}`)
   }
 
-  return result;
-};
 
-
- 
   const fetchStudentReviews = async (studentName) => {
     setLoadingStudents(true);
     try {
@@ -102,32 +109,32 @@ const getMonthlyRatingsForTeacher = async (teacherId) => {
     }
   };
 
-const fetchTeachers = async () => {
-  setLoadingTeachers(true);
-  try {
-    const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
-    const snap = await getDocs(q);
+  const fetchTeachers = async () => {
+    setLoadingTeachers(true);
+    try {
+      const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
+      const snap = await getDocs(q);
 
-    const teacherList = await Promise.all(
-      snap.docs.map(async (doc) => {
-        const data = doc.data();
-        const monthlyRatings = await getMonthlyRatingsForTeacher(doc.id);
-        return {
-          id: doc.id,
-          ...data,
-          monthlyRatings,
-        };
-      })
-    );
+      const teacherList = await Promise.all(
+        snap.docs.map(async (doc) => {
+          const data = doc.data();
+          const monthlyRatings = await getMonthlyRatingsForTeacher(doc.id);
+          return {
+            id: doc.id,
+            ...data,
+            monthlyRatings,
+          };
+        })
+      );
 
-    setTeachers(teacherList);
-  } catch (error) {
-    console.error('Error fetching teachers:', error);
-    toast.error('Failed to fetch teachers');
-  } finally {
-    setLoadingTeachers(false);
-  }
-};
+      setTeachers(teacherList);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      toast.error('Failed to fetch teachers');
+    } finally {
+      setLoadingTeachers(false);
+    }
+  };
 
 
 
@@ -255,29 +262,58 @@ const fetchTeachers = async () => {
                 </tr>
               </thead>
               <tbody>
-                {students.map((s) => (
-                  <tr key={s.id} className="hover:bg-white/10 text-center transition">
-                    <td className="p-3 border border-white/20">{s.name} {s.surname}</td>
-                    <td className="p-3 border border-white/20">{s.email}</td>
+               {students.map((s) => (
+  <tr key={s.id} className="hover:bg-white/10 text-center transition">
+    <td className="p-3 border border-white/20">{s.name} {s.surname}</td>
+    <td className="p-3 border border-white/20">{s.email}</td>
 
-                    <td className="p-3 border border-white/20 flex flex-col sm:flex-row gap-2">
-                      <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
-                        onClick={() => fetchStudentReviews(s.name)}
-                      >
-                        See Review
-                      </button>
+    <td className="p-3 border border-white/20 flex flex-col sm:flex-row gap-2">
 
-                      <button
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
-                        onClick={() => handleRedirectToStudent(s.id)}
-                      >
-                        See Details
-                      </button>
-                    </td>
+      <button
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
+        onClick={() => fetchStudentReviews(s.name)}
+      >
+        See Review
+      </button>
 
-                  </tr>
-                ))}
+      <button
+        className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
+        onClick={() => handleRedirectToStudent(s.id)}
+      >
+        See Details
+      </button>
+
+      {/* 🟨 Send Feedback Button */}
+      {/* <div className="relative w-full sm:w-auto">
+        <button
+          onClick={() => setShowOptions(s.id === showOptions ? null : s.id)}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
+        >
+          Send Feedback
+        </button>
+
+        {showOptions === s.id && (
+          <div className="absolute z-10 mt-2 flex flex-col gap-1 bg-gray-900 p-2 rounded shadow-md border border-white/20">
+            <button
+              onClick={() => handleSendWhatsApp(s.id)}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+            >
+              WhatsApp
+            </button>
+            <button
+              // onClick={() => handleSendGmail(s)}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+            >
+              Gmail
+            </button>
+          </div>
+        )}
+      </div> */}
+
+    </td>
+  </tr>
+))}
+
               </tbody>
             </table>
           </div>
@@ -342,13 +378,13 @@ const fetchTeachers = async () => {
                     <td className="p-3 border border-gray-300">{t.name} {t.surname}</td>
                     <td className="p-3 border border-gray-300">{t.email}</td>
                     <td className="p-3 border border-gray-300">{t.subject}</td>
-<td className="p-3 text-white border border-gray-300 text-sm text-gray-700">
-  {Object.entries(t.monthlyRatings || {}).map(([month, rating]) => (
-    <div key={month}>
-      <strong>{month}:</strong> {rating}
-    </div>
-  ))}
-</td>
+                    <td className="p-3 text-white border border-gray-300 text-sm text-gray-700">
+                      {Object.entries(t.monthlyRatings || {}).map(([month, rating]) => (
+                        <div key={month}>
+                          <strong>{month}:</strong> {rating}
+                        </div>
+                      ))}
+                    </td>
 
 
                     <td className="p-3 border border-gray-300">

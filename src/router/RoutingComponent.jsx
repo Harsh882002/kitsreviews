@@ -13,6 +13,7 @@ import AllReviews from "../teacher/pages/AllReviews"
 import ForgetPassword from "../ForgetPassword"
 import StudentDetails from "../admin/pages/StudentDetails"
 import UpdateStudentForm from "../student/pages/UpdateStudent"
+import SendFeedBack from "../admin/pages/SendFeedBack"
 
 export const RoutingComponent = () => {
     return (
@@ -108,6 +109,12 @@ export const RoutingComponent = () => {
                 }
             />
 
+            <Route
+                path="/sendfeedback/:studentId"
+                element={
+                    <SendFeedBack />
+                }
+            />
 
             <Route
                 path="/not-authorized"
