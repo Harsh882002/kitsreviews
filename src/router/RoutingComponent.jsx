@@ -14,6 +14,7 @@ import ForgetPassword from "../ForgetPassword"
 import StudentDetails from "../admin/pages/StudentDetails"
 import UpdateStudentForm from "../student/pages/UpdateStudent"
 import SendFeedBack from "../admin/pages/SendFeedBack"
+import SendFeedBackEmail from "../admin/pages/SendFeedbackViaEmail"
 
 export const RoutingComponent = () => {
     return (
@@ -114,6 +115,12 @@ export const RoutingComponent = () => {
                 element={
                     <SendFeedBack />
                 }
+            />
+            <Route
+            path="/sendfeedback/email/:studentId"
+            element={
+                <SendFeedBackEmail />
+            }
             />
 
             <Route

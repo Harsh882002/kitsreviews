@@ -90,6 +90,10 @@ const AdminDashboard = () => {
     navigate(`/sendfeedback/${studentId}`)
   }
 
+  const handleSendGmail = (studentId) =>{
+        navigate(`/sendfeedback/email/${studentId}`)
+
+  }
 
   const fetchStudentReviews = async (studentName) => {
     setLoadingStudents(true);
@@ -284,7 +288,7 @@ const AdminDashboard = () => {
       </button>
 
       {/* 🟨 Send Feedback Button */}
-      {/* <div className="relative w-full sm:w-auto">
+      <div className="relative w-full sm:w-auto">
         <button
           onClick={() => setShowOptions(s.id === showOptions ? null : s.id)}
           className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded text-sm w-full sm:w-auto"
@@ -301,14 +305,14 @@ const AdminDashboard = () => {
               WhatsApp
             </button>
             <button
-              // onClick={() => handleSendGmail(s)}
+              onClick={() => handleSendGmail(s.id)}
               className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
             >
               Gmail
             </button>
           </div>
         )}
-      </div> */}
+      </div>
 
     </td>
   </tr>
