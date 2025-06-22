@@ -15,6 +15,7 @@ import StudentDetails from "../admin/pages/StudentDetails"
 import UpdateStudentForm from "../student/pages/UpdateStudent"
 import SendFeedBack from "../admin/pages/SendFeedBack"
 import SendFeedBackEmail from "../admin/pages/SendFeedbackViaEmail"
+import UpdateTeacherDetails from "../teacher/pages/UpdateTeacherDetails"
 
 export const RoutingComponent = () => {
     return (
@@ -111,16 +112,23 @@ export const RoutingComponent = () => {
             />
 
             <Route
+                path="/update-profile/:teacherId"
+                element={
+                    <UpdateTeacherDetails />
+                }
+            />
+
+            <Route
                 path="/sendfeedback/:studentId"
                 element={
                     <SendFeedBack />
                 }
             />
             <Route
-            path="/sendfeedback/email/:studentId"
-            element={
-                <SendFeedBackEmail />
-            }
+                path="/sendfeedback/email/:studentId"
+                element={
+                    <SendFeedBackEmail />
+                }
             />
 
             <Route
@@ -129,6 +137,8 @@ export const RoutingComponent = () => {
                     <NotAuthorized />
                 }
             />
+
+
 
 
         </Routes>

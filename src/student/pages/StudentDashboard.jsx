@@ -36,7 +36,8 @@ export default function StudentDashboard() {
 
           const reviewsQuery = query(
             collection(db, 'reviews'),
-            where('teacherId', '==', studentData.teacherId)
+            where('teacherId', '==', studentData.teacherId),
+            where('subject', '==', studentData.course)
           );
           const reviewsSnapshot = await getDocs(reviewsQuery);
           const reviewsList = reviewsSnapshot.docs.map(doc => ({
@@ -48,6 +49,7 @@ export default function StudentDashboard() {
           reviewsList.sort((a, b) => b.date - a.date);
           setReviews(reviewsList);
         }
+
       } catch (err) {
         toast.error(err.message || 'Error loading data.');
       } finally {
@@ -103,15 +105,15 @@ export default function StudentDashboard() {
       </h1>
 
 
-       {/* Profile Card Section */}
+      {/* Profile Card Section */}
       <div className="flex justify-center mb-10 px-4">
         <div className="w-full max-w-3xl">
           <ProfileCard student={student} />
         </div>
 
       </div>
-     
-       {/* Centered ReviewsSection */}
+
+      {/* Centered ReviewsSection */}
       <div className="flex justify-center px-4 ">
         <div className="w-full max-w-2xl">
           <ReviewsSection
@@ -131,14 +133,14 @@ export default function StudentDashboard() {
         >
           Logout
         </button>
-         {/* Update Profile Button */}
-           <button
-            onClick={() => navigate(`/student/update/${student.uid}`)}
-            className="ml-10 bg-yellow-500 py-2 px-6 rounded-xl hover:bg-yellow-600 transition text-black font-semibold"
-          >
-            Update Profile
-          </button>
-       </div>
+        {/* Update Profile Button */}
+        <button
+          onClick={() => navigate(`/student/update/${student.uid}`)}
+          className="ml-10 bg-yellow-500 py-2 px-6 rounded-xl hover:bg-yellow-600 transition text-black font-semibold"
+        >
+          Update Profile
+        </button>
+      </div>
 
       <ToastContainer position="top-center" autoClose={3000} theme="dark" />
     </div>

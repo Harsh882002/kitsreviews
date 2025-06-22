@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, setDoc, doc, Timestamp, getDocs, where, query } from "firebase/firestore";
+import { collection, setDoc, doc, Timestamp, getDocs, getDoc, where, query } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
 import { useNavigate } from "react-router";
@@ -8,6 +8,8 @@ export default function Signup() {
     const navigate = useNavigate();
 
     const [teachers, setTeachers] = useState([]);
+    const [subjects, setSubjects] = useState([]);
+
     const [formData, setFormData] = useState({
         name: "",
         surname: "",
@@ -40,9 +42,31 @@ export default function Signup() {
         fetchTeachers();
     }, []);
 
+    // Fetch subjects when a teacher is selected
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            if (!formData.teacherId) {
+                setSubjects([]);
+                return;
+            }
+
+            try {
+                const teacherDoc = await getDoc(doc(db, 'users', formData.teacherId));
+                if (teacherDoc.exists()) {
+                    const data = teacherDoc.data();
+                    setSubjects(data.courses || []);
+                }
+            } catch (error) {
+                console.error("Error fetching subjects:", error);
+            }
+        };
+
+        fetchSubjects();
+    }, [formData.teacherId]);
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        setErrorMsg(""); // clear error on typing
+        setErrorMsg("");
     };
 
     const validateForm = () => {
@@ -56,6 +80,10 @@ export default function Signup() {
         }
         if (!formData.teacherId) {
             setErrorMsg("Please select a teacher.");
+            return false;
+        }
+        if (!formData.course) {
+            setErrorMsg("Please select a subject.");
             return false;
         }
         return true;
@@ -103,9 +131,9 @@ export default function Signup() {
                 password: "",
                 teacherId: "",
             });
+            setSubjects([]);
 
             navigate("/");
-
         } catch (error) {
             setErrorMsg(error.message);
         }
@@ -125,70 +153,15 @@ export default function Signup() {
                     className="grid grid-cols-1 md:grid-cols-2 gap-6 text-white"
                     autoComplete="off"
                 >
-                    <FloatingInput
-                        label="First Name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        autoComplete="given-name"
-                    />
-                    <FloatingInput
-                        label="Last Name"
-                        name="surname"
-                        value={formData.surname}
-                        onChange={handleChange}
-                        autoComplete="family-name"
-                    />
-                    <FloatingInput
-                        label="Age"
-                        name="age"
-                        type="number"
-                        value={formData.age}
-                        onChange={handleChange}
-                        min="0"
-                        autoComplete="off"
-                    />
-                    <FloatingInput
-                        label="Course"
-                        name="course"
-                        value={formData.course}
-                        onChange={handleChange}
-                        autoComplete="off"
-                    />
-                    <FloatingInput
-                        label="City"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        autoComplete="address-level2"
-                    />
-                    <FloatingInput
-                        label="Education"
-                        name="education"
-                        value={formData.education}
-                        onChange={handleChange}
-                        autoComplete="off"
-                    />
-                    <FloatingInput
-                        label="Email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="md:col-span-2"
-                        autoComplete="email"
-                    />
-                    <FloatingInput
-                        label="Password"
-                        name="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        className="md:col-span-2"
-                        autoComplete="new-password"
-                    />
+                    <FloatingInput label="First Name" name="name" value={formData.name} onChange={handleChange} />
+                    <FloatingInput label="Last Name" name="surname" value={formData.surname} onChange={handleChange} />
+                    <FloatingInput label="Age" name="age" type="number" value={formData.age} onChange={handleChange} min="0" />
+                    <FloatingInput label="City" name="city" value={formData.city} onChange={handleChange} />
+                    <FloatingInput label="Education" name="education" value={formData.education} onChange={handleChange} />
+                    <FloatingInput label="Email" name="email" type="email" value={formData.email} onChange={handleChange} className="md:col-span-2" />
+                    <FloatingInput label="Password" name="password" type="password" value={formData.password} onChange={handleChange} className="md:col-span-2" />
 
-                    {/* Teacher Select Dropdown */}
+                    {/* Select Teacher */}
                     <div className="relative md:col-span-2">
                         <label className="block mb-1 text-gray-400 text-sm select-none">
                             Select Teacher
@@ -202,12 +175,35 @@ export default function Signup() {
                         >
                             <option value="">-- Select Teacher --</option>
                             {teachers.map((teacher) => (
-                                <option key={teacher.id} value={teacher.teacherId || teacher.id} className="bg-black text-white">
+                                <option key={teacher.id} value={teacher.id}>
                                     {teacher.name} {teacher.surname}
                                 </option>
                             ))}
                         </select>
                     </div>
+
+                    {/* Select Subject (Courses) */}
+                    {subjects.length > 0 && (
+                        <div className="relative md:col-span-2">
+                            <label className="block mb-1 text-gray-400 text-sm select-none">
+                                Select Subject
+                            </label>
+                            <select
+                                name="course"
+                                value={formData.course}
+                                onChange={handleChange}
+                                required
+                                className="w-full bg-black border border-gray-600 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-[#FF00CC] focus:border-[#FF00CC] transition"
+                            >
+                                <option value="">-- Select Subject --</option>
+                                {subjects.map((subject, index) => (
+                                    <option key={index} value={subject}>
+                                        {subject}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     {errorMsg && (
                         <p className="md:col-span-2 text-red-400 text-center">{errorMsg}</p>
@@ -242,40 +238,6 @@ export default function Signup() {
                 .animate-gradient-x {
                   background-size: 200% 200%;
                   animation: gradient-x 8s ease infinite;
-                }
-                input:focus + label,
-                input:not(:placeholder-shown) + label {
-                  top: -12px;
-                  font-size: 0.75rem;
-                  color: white;
-                  background-color: rgba(0,0,0,0.75);
-                  padding: 0 8px;
-                  left: 12px;
-                  z-index: 1;
-                  transition: all 0.2s ease-out;
-                  pointer-events: none;
-                }
-                input::placeholder {
-                  color: #fff;
-                  opacity: 1;
-                }
-                select {
-                  background-color: black;
-                  color: white;
-                  border: 1px solid #FF00CC;
-                }
-                option {
-                  background-color: black;
-                  color: white;
-                }
-                select option:checked {
-                  background-color: black;
-                  color: white;
-                }
-                select:focus {
-                  outline: none;
-                  border-color: #FF00CC;
-                  box-shadow: 0 0 5px #FF00CC;
                 }
             `}</style>
         </div>

@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, getDoc, addDoc, query, where, deleteDoc } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  addDoc,
+  query,
+  where,
+  deleteDoc
+} from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import Swal from 'sweetalert2';
 import { getAuth, signOut } from 'firebase/auth';
 import { toast, ToastContainer } from 'react-toastify';
 import { Link, useNavigate } from 'react-router';
 
-
 const TeacherDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [topic, setTopic] = useState('');
   const [date, setDate] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [subjects, setSubjects] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [teacher, setTeacher] = useState(null);
@@ -27,11 +37,7 @@ const TeacherDashboard = () => {
           const userData = userDoc.data();
           if (userData.role === 'teacher') {
             setTeacher({ ...userData, uid: user.uid });
-          } else {
-            console.warn('Logged in user is not a teacher.');
           }
-        } else {
-          console.warn('No user document found.');
         }
 
         const reviewsQuery = query(
@@ -44,7 +50,7 @@ const TeacherDashboard = () => {
           .sort((a, b) => {
             const dateA = a.date?.seconds || 0;
             const dateB = b.date?.seconds || 0;
-            return dateB - dateA; // Sort by date descending
+            return dateB - dateA;
           });
 
         setStudents(reviews);
@@ -56,8 +62,32 @@ const TeacherDashboard = () => {
     }
   };
 
+  const fetchSubjects = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) return;
+
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        const courseArray = data.courses || [];
+        setSubjects(courseArray); // this is now a simple array of strings
+      } else {
+        console.warn("Teacher not found.");
+      }
+    } catch (err) {
+      console.error("Error fetching teacher courses:", err);
+    }
+  };
+
+
   useEffect(() => {
     fetchData();
+    fetchSubjects();
   }, []);
 
   const formatDate = (timestamp) => {
@@ -80,18 +110,25 @@ const TeacherDashboard = () => {
       return;
     }
 
+    if (!selectedSubject) {
+      toast.error("Please select a subject.");
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'reviews'), {
         topic,
+        subject: selectedSubject,
         date,
         teacherId: teacher.uid,
         createdAt: new Date()
       });
 
-      alert(`Topic "${topic}" on ${date} added successfully!`);
+      alert(`Review for "${topic}" on ${date} added successfully!`);
       setShowForm(false);
       setTopic('');
       setDate('');
+      setSelectedSubject('');
     } catch (error) {
       console.error('Error adding review:', error);
       alert('Failed to add review');
@@ -148,7 +185,7 @@ const TeacherDashboard = () => {
         </button>
       </div>
 
-      <div className=" mx-auto bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/30">
+      <div className="mx-auto bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/30">
 
         {loading ? (
           <div className="text-center py-10">
@@ -157,33 +194,56 @@ const TeacherDashboard = () => {
           </div>
         ) : (
           <>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-yellow-300 text-center">
+            <h1 className="text-3xl font-bold mb-4 text-yellow-300 text-center">
               Welcome, {teacher?.name || 'Teacher'}! 👨‍🏫
             </h1>
             <p className="text-center mb-6 text-sm sm:text-base">
               Subject: {teacher?.subject || 'N/A'} | Email: {teacher?.email || 'N/A'}
             </p>
 
-            <div className="flex justify-center mb-4">
+            <div className="flex flex-wrap justify-center mb-4 gap-4">
               <button
                 onClick={() => setShowForm(!showForm)}
                 className="bg-yellow-400 text-indigo-900 font-bold px-6 py-2 rounded-xl hover:bg-yellow-500 transition"
               >
                 {showForm ? 'Cancel' : '➕ Add Review'}
+              </button>
 
-              </button>
-              <button>
-                <Link
-                  to={`/allreview/${teacher?.uid}`}
-                className="bg-green-400 text-indigo-900 font-bold px-6 py-2 m-10 rounded-xl hover:bg-green-500 transition"
-                >
-                  See  Reviews
-                </Link>
-              </button>
+              <Link
+                to={`/allreview/${teacher?.uid}`}
+                className="bg-green-400 text-indigo-900 font-bold px-6 py-2 rounded-xl hover:bg-green-500 transition"
+              >
+                See Reviews
+              </Link>
+
+              <Link
+                to={`/update-profile/${teacher?.uid}`}
+                className="bg-blue-400 text-indigo-900 font-bold px-6 py-2 rounded-xl hover:bg-blue-500 transition"
+              >
+                Update Profile
+              </Link>
             </div>
 
             {showForm && (
               <form onSubmit={handleAddReview} className="space-y-4 bg-white/10 p-4 rounded-xl border border-white/20">
+                <div>
+                  <label className="block mb-1 font-semibold text-yellow-200">Subject</label>
+                  <select
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    className="w-full p-2 rounded text-black"
+                    required
+                  >
+                    <option value="">Select Subject</option>
+                    {subjects.map((subj, index) => (
+                      <option key={index} value={subj}>
+                        {subj}
+                      </option>
+                    ))}
+                  </select>
+
+                </div>
+
                 <div>
                   <label className="block mb-1 font-semibold text-yellow-200">Topic</label>
                   <input
@@ -195,6 +255,7 @@ const TeacherDashboard = () => {
                     required
                   />
                 </div>
+
                 <div>
                   <label className="block mb-1 font-semibold text-yellow-200">Date</label>
                   <input
@@ -205,16 +266,17 @@ const TeacherDashboard = () => {
                     required
                   />
                 </div>
+
                 <button
                   type="submit"
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
                 >
-                  Add
+                  Add Review
                 </button>
               </form>
             )}
 
-            <h2 className="text-xl sm:text-2xl font-bold mt-8 mb-4 text-yellow-300 text-center">📚 Student Reviews</h2>
+            <h2 className="text-2xl font-bold mt-8 mb-4 text-yellow-300 text-center">📚 Student Reviews</h2>
 
             {students.length === 0 ? (
               <p className="text-center text-lg text-gray-200 py-4">No reviews yet 📭</p>
@@ -234,15 +296,11 @@ const TeacherDashboard = () => {
                   <tbody>
                     {students.map((s) => (
                       <tr key={s.id} className="hover:bg-white/10 transition">
-                        <td className="p-2 sm:p-3 border border-white/20 break-words max-w-xs">
-                          {formatDate(s.date)}
-                        </td>
+                        <td className="p-2 border border-white/20">{formatDate(s.date)}</td>
                         <td className="p-2 border border-white/20">{s.topic}</td>
                         <td className="p-2 border border-white/20">{s.studentName} {s.surname}</td>
                         <td className="p-2 border border-white/20">{s.message}</td>
-                        <td className="p-2 border border-white/20 text-yellow-400 text-lg text-center">
-                          {renderStars(s.rating)}
-                        </td>
+                        <td className="p-2 border border-white/20 text-center">{renderStars(s.rating)}</td>
                         <td className="p-2 border border-white/20 text-center">
                           <div className="flex flex-col sm:flex-row sm:justify-center gap-2">
                             <button
@@ -262,7 +320,6 @@ const TeacherDashboard = () => {
                       </tr>
                     ))}
                   </tbody>
-
                 </table>
               </div>
             )}
