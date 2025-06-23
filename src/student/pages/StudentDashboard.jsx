@@ -37,7 +37,7 @@ export default function StudentDashboard() {
           const reviewsQuery = query(
             collection(db, 'reviews'),
             where('teacherId', '==', studentData.teacherId),
-            where('subject', '==', studentData.course)
+            where('subject', '==', studentData.course.trim())
           );
           const reviewsSnapshot = await getDocs(reviewsQuery);
           const reviewsList = reviewsSnapshot.docs.map(doc => ({
