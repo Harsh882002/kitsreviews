@@ -55,18 +55,19 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
     try {
       const review = reviews.find(r => r.topic === selectedTopic);
       const newReview = {
-        teacherId: student.teacherId,
-        reviewId: review.id,
-        topic: selectedTopic,
-        studentName: student.name,
-        surname: student.surname,
-        message: feedbackText,
-        rating,
-        date: review?.date || new Date(),
-        studentId: student.uid,
-      };
-
+  teacherId: review.teacherId, // ✅ fix here
+  reviewId: review.id,
+  topic: selectedTopic,
+  studentName: student.name,
+  surname: student.surname,
+  message: feedbackText,
+  rating,
+  date: new Date(), // Always use current date
+  studentId: student.uid,
+};
+      console.log("i am here bro")
       await addDoc(collection(db, 'studentreviews'), newReview);
+      console.log("review submitted bro")
 
       toast.success('Feedback submitted successfully!');
       setSubmittedTopics(prev => [...prev, selectedTopic]);
@@ -105,9 +106,8 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
                   setOpenReview(true);
                 }
               }}
-              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${
-                alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'
-              } rounded-xl p-4 shadow-lg`}
+              className={`cursor-pointer bg-white/10 hover:bg-white/20 transition backdrop-blur-md border ${alreadySubmitted ? 'border-gray-400' : 'border-yellow-300'
+                } rounded-xl p-4 shadow-lg`}
             >
               <p className="text-white text-sm font-semibold mb-1">
                 Topic: <span className="text-yellow-300">{topic}</span>
@@ -163,7 +163,7 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
                         <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mt-2 w-full shadow-lg">
                           <div className="flex justify-between items-center mb-1">
                             <p className="text-sm font-semibold text-yellow-900">💡 Suggestions:</p>
-                            <button 
+                            <button
                               type="button"
                               onClick={() => setShowSuggestions(false)}
                               className="text-yellow-700 hover:text-yellow-900 text-lg"

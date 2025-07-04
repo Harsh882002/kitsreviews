@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebaseConfig';
 import { getAuth, signOut } from 'firebase/auth';
-import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  getDocs,
+  collection,
+  query,
+  where
+} from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router';
@@ -12,13 +19,14 @@ import ReviewsSection from './ReviewsSection';
 
 export default function StudentDashboard() {
   const [student, setStudent] = useState(null);
-  const [teacher, setTeacher] = useState(null);
+  const [teacher, setTeacher] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [submittedTopics, setSubmittedTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
 
+  console.log(reviews)
   useEffect(() => {
     async function fetchData() {
       try {
@@ -30,26 +38,46 @@ export default function StudentDashboard() {
         const studentData = studentDoc.data();
         setStudent({ ...studentData, uid: user.uid });
 
-        if (studentData.teacherId) {
-          const teacherDoc = await getDoc(doc(db, 'users', studentData.teacherId));
-          if (teacherDoc.exists()) setTeacher(teacherDoc.data());
+        const allReviews = [];
+        const teacherDataList = [];
 
-          const reviewsQuery = query(
-            collection(db, 'reviews'),
-            where('teacherId', '==', studentData.teacherId),
-            where('subject', '==', studentData.course.trim())
-          );
-          const reviewsSnapshot = await getDocs(reviewsQuery);
-          const reviewsList = reviewsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            date: doc.data().date?.toDate?.() || new Date(doc.data().date)
-          }));
+        if (Array.isArray(studentData.teacherId)) {
+          for (let i = 0; i < studentData.teacherId.length; i++) {
+            const teacherId = studentData.teacherId[i];
+            const subject = Array.isArray(studentData.course)
+              ? studentData.course[i]
+              : studentData.course;
 
-          reviewsList.sort((a, b) => b.date - a.date);
-          setReviews(reviewsList);
+            const teacherDoc = await getDoc(doc(db, 'users', teacherId));
+            let teacherName = 'Unknown';
+            if (teacherDoc.exists()) {
+              const tData = teacherDoc.data();
+              teacherDataList.push(tData);
+              teacherName = `${tData.name} ${tData.surname}`;
+            }
+
+            const reviewsQuery = query(
+              collection(db, 'reviews'),
+              where('teacherId', '==', teacherId),
+              where('subject', '==', subject)
+            );
+
+            const reviewsSnapshot = await getDocs(reviewsQuery);
+             const reviewsList = reviewsSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              date: doc.data().date?.toDate?.() || new Date(doc.data().date),
+              teacherName,
+              subject
+            }));
+
+            allReviews.push(...reviewsList);
+          }
         }
 
+        allReviews.sort((a, b) => b.date - a.date);
+        setReviews(allReviews);
+        setTeacher(teacherDataList);
       } catch (err) {
         toast.error(err.message || 'Error loading data.');
       } finally {
@@ -62,14 +90,23 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     async function fetchSubmittedReviews() {
-      if (!student?.teacherId || !student?.uid) return;
-      const q = query(
-        collection(db, 'studentreviews'),
-        where('teacherId', '==', student.teacherId),
-        where('studentId', '==', student.uid)
-      );
-      const snapshot = await getDocs(q);
-      setSubmittedTopics(snapshot.docs.map(doc => doc.data().topic));
+      if (!Array.isArray(student?.teacherId) || !student?.uid) return;
+      let allTopics = [];
+
+      for (let teacherId of student.teacherId) {
+        const q = query(
+          collection(db, 'studentreviews'),
+          where('teacherId', '==', teacherId),
+          where('studentId', '==', student.uid)
+        );
+        const snapshot = await getDocs(q);
+        const topics = snapshot.docs.map(doc => doc.data().topic?.toLowerCase?.() || '');
+        allTopics.push(...topics);
+      }
+
+      // ✅ Remove duplicates
+      const uniqueTopics = [...new Set(allTopics)];
+      setSubmittedTopics(uniqueTopics);
     }
 
     if (student) fetchSubmittedReviews();
@@ -99,21 +136,16 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white py-10 px-4">
-
       <h1 className="text-3xl sm:text-4xl font-extrabold mb-8 text-center drop-shadow-lg">
         Welcome, <span className="text-yellow-400">{student.name} {student.surname}</span>! 🎓
       </h1>
 
-
-      {/* Profile Card Section */}
       <div className="flex justify-center mb-10 px-4">
         <div className="w-full max-w-3xl">
           <ProfileCard student={student} />
         </div>
-
       </div>
 
-      {/* Centered ReviewsSection */}
       <div className="flex justify-center px-4 ">
         <div className="w-full max-w-2xl">
           <ReviewsSection
@@ -125,7 +157,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Logout Button */}
       <div className="flex justify-center mt-8">
         <button
           onClick={handleLogout}
@@ -133,7 +164,7 @@ export default function StudentDashboard() {
         >
           Logout
         </button>
-        {/* Update Profile Button */}
+
         <button
           onClick={() => navigate(`/student/update/${student.uid}`)}
           className="ml-10 bg-yellow-500 py-2 px-6 rounded-xl hover:bg-yellow-600 transition text-black font-semibold"

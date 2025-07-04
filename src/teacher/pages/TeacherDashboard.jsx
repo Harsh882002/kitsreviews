@@ -26,6 +26,7 @@ const TeacherDashboard = () => {
   const [teacher, setTeacher] = useState(null);
   const navigate = useNavigate();
 
+ 
   const fetchData = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
@@ -75,7 +76,7 @@ const TeacherDashboard = () => {
       if (userSnap.exists()) {
         const data = userSnap.data();
         const courseArray = data.courses || [];
-        setSubjects(courseArray); // this is now a simple array of strings
+        setSubjects(courseArray);
       } else {
         console.warn("Teacher not found.");
       }
@@ -83,7 +84,6 @@ const TeacherDashboard = () => {
       console.error("Error fetching teacher courses:", err);
     }
   };
-
 
   useEffect(() => {
     fetchData();
@@ -120,7 +120,7 @@ const TeacherDashboard = () => {
         topic,
         subject: selectedSubject,
         date,
-        teacherId: teacher.uid,
+        teacherId: teacher.uid, // ✅ Make it array
         createdAt: new Date()
       });
 
@@ -129,6 +129,7 @@ const TeacherDashboard = () => {
       setTopic('');
       setDate('');
       setSelectedSubject('');
+      fetchData(); // ⬅️ refresh reviews after adding
     } catch (error) {
       console.error('Error adding review:', error);
       alert('Failed to add review');
@@ -241,7 +242,6 @@ const TeacherDashboard = () => {
                       </option>
                     ))}
                   </select>
-
                 </div>
 
                 <div>
