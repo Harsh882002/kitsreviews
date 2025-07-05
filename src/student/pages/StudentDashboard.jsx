@@ -87,29 +87,26 @@ export default function StudentDashboard() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    async function fetchSubmittedReviews() {
-      if (!Array.isArray(student?.teacherId) || !student?.uid) return;
-      let allTopics = [];
+ useEffect(() => {
+    if (!student || !student.uid) return;
 
-      for (let teacherId of student.teacherId) {
-        const q = query(
-          collection(db, 'studentreviews'),
-          where('teacherId', '==', teacherId),
-          where('studentId', '==', student.uid)
-        );
-        const snapshot = await getDocs(q);
-        const topics = snapshot.docs.map(doc => doc.data().topic?.toLowerCase?.() || '');
-        allTopics.push(...topics);
-      }
-
-      // ✅ Remove duplicates
-      const uniqueTopics = [...new Set(allTopics)];
-      setSubmittedTopics(uniqueTopics);
+  const fetchSubmittedReviews = async () => {
+    try {
+      const q = query(
+        collection(db, 'studentreviews'),
+        where('studentId', '==', student.uid)
+      );
+      const querySnapshot = await getDocs(q);
+      const submitted = querySnapshot.docs.map(doc => doc.data().topic.toLowerCase());
+      setSubmittedTopics(submitted);
+    } catch (error) {
+      console.error("Failed to fetch submitted reviews:", error);
     }
+  };
 
-    if (student) fetchSubmittedReviews();
-  }, [student]);
+  fetchSubmittedReviews();
+}, [student]);
+
 
   const handleLogout = async () => {
     try {

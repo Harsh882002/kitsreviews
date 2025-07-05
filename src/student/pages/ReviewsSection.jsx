@@ -95,7 +95,8 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
         )}
 
         {reviews.map(({ id, topic, date }) => {
-          const alreadySubmitted = submittedTopics.includes(topic);
+          const alreadySubmitted = submittedTopics.includes(topic.toLowerCase());
+
 
           return (
             <div
