@@ -120,7 +120,7 @@ const AllReviews = () => {
                                 onClick={() => handleDelete(id)}
                                 className="mt-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                             >
-                                🗑️ Deletes
+                                🗑️ Delete
                             </button>                        </div>
                     </div>
                 ))}

@@ -55,16 +55,16 @@ export default function ReviewsSection({ reviews, student, submittedTopics, setS
     try {
       const review = reviews.find(r => r.topic === selectedTopic);
       const newReview = {
-  teacherId: review.teacherId, // ✅ fix here
-  reviewId: review.id,
-  topic: selectedTopic,
-  studentName: student.name,
-  surname: student.surname,
-  message: feedbackText,
-  rating,
-  date: new Date(), // Always use current date
-  studentId: student.uid,
-};
+        teacherId: review.teacherId, // ✅ fix here
+        reviewId: review.id,
+        topic: selectedTopic,
+        studentName: student.name,
+        surname: student.surname,
+        message: feedbackText,
+        rating,
+        date: new Date(), // Always use current date
+        studentId: student.uid,
+      };
       console.log("i am here bro")
       await addDoc(collection(db, 'studentreviews'), newReview);
       console.log("review submitted bro")

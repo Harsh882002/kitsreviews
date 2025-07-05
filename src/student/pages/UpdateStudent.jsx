@@ -28,14 +28,19 @@ export default function UpdateStudentForm() {
 
         const studentData = studentSnap.data();
 
-        // Convert course from string to array if needed
+        // Convert course to array if it's a string
         const formattedCourse = Array.isArray(studentData.course)
           ? studentData.course
           : studentData.course
-          ? studentData.course.split(',').map((c) => c.trim())
+          ? studentData.course.split(',').map(c => c.trim())
           : [];
 
-        const initialTeachers = studentData.teacherId || [];
+        // Ensure teacherId is an array
+        const initialTeachers = Array.isArray(studentData.teacherId)
+          ? studentData.teacherId
+          : studentData.teacherId
+          ? [studentData.teacherId]
+          : [];
 
         setStudent({ ...studentData, course: formattedCourse, teacherId: initialTeachers });
 
@@ -45,7 +50,6 @@ export default function UpdateStudentForm() {
           .map(doc => ({ id: doc.id, ...doc.data() }));
 
         setAllTeachers(teacherUsers);
-  
 
         const available = teacherUsers.filter(t => !initialTeachers.includes(t.id));
         setAvailableTeachers(available);
@@ -97,14 +101,14 @@ export default function UpdateStudentForm() {
     setStudent(prev => ({
       ...prev,
       teacherId: [...(prev.teacherId || []), selectedTeacher],
-     }));
+    }));
 
     setAvailableTeachers(prev => prev.filter(t => t.id !== selectedTeacher));
     setSelectedTeacher('');
   };
 
   const handleRemoveTeacher = (teacherId) => {
-    const updatedTeachers = student.teacherId.filter(tid => tid !== teacherId);
+    const updatedTeachers = (student.teacherId || []).filter(tid => tid !== teacherId);
     const removedTeacher = allTeachers.find(t => t.id === teacherId);
 
     setStudent({ ...student, teacherId: updatedTeachers });
@@ -113,19 +117,19 @@ export default function UpdateStudentForm() {
 
   const handleAddCourse = () => {
     if (!selectedCourse.trim()) return;
-    if (student.course.includes(selectedCourse.trim())) return toast.warn("Course already added");
+    if ((student.course || []).includes(selectedCourse.trim())) return toast.warn("Course already added");
 
-    setStudent((prev) => ({
+    setStudent(prev => ({
       ...prev,
-      course: [...prev.course, selectedCourse.trim()],
+      course: [...(prev.course || []), selectedCourse.trim()],
     }));
     setSelectedCourse('');
   };
 
   const handleRemoveCourse = (courseName) => {
-    setStudent((prev) => ({
+    setStudent(prev => ({
       ...prev,
-      course: prev.course.filter(c => c !== courseName),
+      course: (prev.course || []).filter(c => c !== courseName),
     }));
   };
 
@@ -177,7 +181,7 @@ export default function UpdateStudentForm() {
           />
         </div>
 
-        {/* Course (as multiple) */}
+        {/* Course */}
         <div className="mb-4">
           <label className="block mb-1">Add Course</label>
           <div className="flex gap-2">
@@ -196,7 +200,7 @@ export default function UpdateStudentForm() {
             </button>
           </div>
           <ul className="mt-2">
-            {student.course?.map((c, idx) => (
+            {(student.course || []).map((c, idx) => (
               <li
                 key={idx}
                 className="bg-white/20 rounded px-2 py-1 my-1 flex justify-between items-center"
@@ -213,11 +217,11 @@ export default function UpdateStudentForm() {
           </ul>
         </div>
 
-        {/* Assigned Teachers */}
+        {/* Teachers */}
         <div className="mb-4">
           <label className="block mb-2 font-semibold text-yellow-400">Assigned Teachers</label>
           <ul className="mb-2">
-            {student.teacherId.map((teacherId, index) => {
+            {(Array.isArray(student.teacherId) ? student.teacherId : []).map((teacherId, index) => {
               const teacher = allTeachers.find(t => t.id === teacherId);
               return (
                 <li
@@ -229,7 +233,6 @@ export default function UpdateStudentForm() {
                     type="button"
                     onClick={() => handleRemoveTeacher(teacherId)}
                     className="text-red-400 hover:text-red-600 text-lg font-bold"
-                    title="Remove"
                   >
                     ❌
                   </button>

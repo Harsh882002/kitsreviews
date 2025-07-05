@@ -26,8 +26,7 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
 
 
-  console.log(reviews)
-  useEffect(() => {
+   useEffect(() => {
     async function fetchData() {
       try {
         const auth = getAuth();
